@@ -427,6 +427,7 @@ function ConversationSession({
           disabled={state.isFinishing || state.phase === 'ended'}
           inputLevel={state.inputLevel}
           onToggleMic={engine.toggleListening}
+          onResume={engine.resume}
         />
       </View>
 

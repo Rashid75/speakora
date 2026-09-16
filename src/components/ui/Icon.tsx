@@ -34,6 +34,7 @@ export type IconName =
   | 'trash'
   | 'skip'
   | 'speaker'
+  | 'play'
   | 'logo';
 
 export interface IconProps {
@@ -171,6 +172,10 @@ const renderPaths = (name: IconName, color: string, p: CommonProps): React.JSX.E
           <Circle cx={20} cy={12} r={2} fill={color} />
         </>
       );
+    case 'play':
+      // Filled, unlike the rest of the set: at mic size a stroked triangle
+      // reads as an outline of a shape rather than as "play".
+      return <Path d="M8 5.2L18.6 12 8 18.8z" {...p} fill={color} />;
     case 'speaker':
       return (
         <>
@@ -197,6 +202,13 @@ const renderPaths = (name: IconName, color: string, p: CommonProps): React.JSX.E
       );
     case 'logo':
     default:
-      return <Path d="M12 3l9 9-9 9-9-9z" {...p} />;
+      // The app icon's microphone, not a separate mark: the thing on the
+      // launcher and the thing inside the app should be the same object.
+      return (
+        <Path
+          d="M12 3a3 3 0 013 3v5a3 3 0 01-6 0V6a3 3 0 013-3zM5 11a7 7 0 0014 0M12 18v3M8 21h8"
+          {...p}
+        />
+      );
   }
 };

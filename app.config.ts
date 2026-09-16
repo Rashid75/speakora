@@ -84,6 +84,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         image: './assets/splash-icon.png',
         resizeMode: 'contain',
+        // The same 88pt tile `SplashView` draws, so the native layer and the
+        // React one show one logo at one size rather than two screens.
+        imageWidth: 88,
         // Matches `SplashView`'s canvas in both schemes - that view is painted
         // on ink regardless of theme, so this must be too or the handover
         // between the two layers flashes.

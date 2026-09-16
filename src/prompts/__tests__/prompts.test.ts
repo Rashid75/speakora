@@ -32,8 +32,28 @@ describe('buildConversationSystemPrompt', () => {
   });
 
   it('forbids the interview pattern the brief rules out', () => {
-    expect(prompt).toContain('DO NOT end every reply with a question');
     expect(prompt).toContain('Never ask two questions in one reply');
+    expect(prompt).toContain('react before you ask');
+  });
+
+  describe('turn-taking', () => {
+    // The learner is here to practise, so the ball has to come back to them -
+    // but only when they were answering. If they asked something, answering and
+    // stopping is what lets them lead.
+    it('hands the turn back with a question when the learner was answering', () => {
+      expect(prompt).toContain('did NOT ask you anything');
+      expect(prompt).toContain('end with exactly one question');
+      expect(prompt).toContain('Never leave them with nothing to reply to');
+    });
+
+    it('just answers, without volleying back, when the learner asked something', () => {
+      expect(prompt).toContain('DID ask you something');
+      expect(prompt).toContain('Do not bounce a question straight back');
+    });
+
+    it('still requires a reaction before the question', () => {
+      expect(prompt).toContain('react before you ask');
+    });
   });
 
   it('forbids in-conversation correction', () => {

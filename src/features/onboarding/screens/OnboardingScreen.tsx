@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/ui/AppText';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
 import { PERSONALITY_LIST } from '@/data/personalities';
 import { useSettings } from '@/state/SettingsContext';
 import { useTheme } from '@/theme';
@@ -73,9 +74,7 @@ export function OnboardingScreen(): React.JSX.Element {
         >
           <View style={styles.brand}>
             <View style={[styles.mark, { backgroundColor: theme.colors.primary }]}>
-              <AppText variant="calloutStrong" style={{ color: theme.colors.onPrimary }}>
-                S
-              </AppText>
+              <Icon name="logo" size={16} color={theme.colors.onPrimary} strokeWidth={2} />
             </View>
             <AppText variant="subhead" color="onInk">
               Speakora

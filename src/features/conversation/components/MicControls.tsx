@@ -14,6 +14,8 @@ export interface MicControlsProps {
   /** 0-1 microphone level, when the platform reports one. */
   readonly inputLevel: number;
   readonly onToggleMic: () => void;
+  /** Lifts a pause. The button becomes a play control while paused. */
+  readonly onResume: () => void;
 }
 
 const MIC_SIZE = 68;
@@ -33,11 +35,16 @@ export function MicControls({
   disabled,
   inputLevel,
   onToggleMic,
+  onResume,
 }: MicControlsProps): React.JSX.Element {
   const theme = useTheme();
   const reduceMotion = useReducedMotion();
   const listening = phase === 'listening';
   const thinking = phase === 'processing' || phase === 'connecting';
+  // While paused the button stops being a mic at all: tapping it lifts the
+  // pause. Resuming used to be buried in the settings sheet, which is a long
+  // way to go for the only thing you can usefully do in that state.
+  const paused = phase === 'paused';
 
   const micBackground = listening ? theme.colors.listening : theme.colors.primary;
   // The listening fill is a bright mint in dark themes and a deep green in
@@ -84,6 +91,10 @@ export function MicControls({
       <Pressable
         onPress={() => {
           if (disabled) return;
+          if (paused) {
+            onResume();
+            return;
+          }
           onToggleMic();
         }}
         disabled={disabled}
@@ -100,7 +111,7 @@ export function MicControls({
           },
         ]}
       >
-        <Icon name={listening ? 'mic' : 'micOff'} size={26} color={micGlyph} />
+        <Icon name={paused ? 'play' : listening ? 'mic' : 'micOff'} size={26} color={micGlyph} />
       </Pressable>
     </View>
   );
@@ -181,7 +192,7 @@ const statusFor = (phase: VoicePhase): string => {
     case 'speaking':
       return 'Your partner is talking · tap to jump in';
     case 'paused':
-      return 'Paused';
+      return 'Paused · tap to resume';
     case 'ended':
       return 'Conversation finished';
     case 'error':
@@ -212,6 +223,8 @@ const dotFor = (phase: VoicePhase, theme: Theme): string => {
 /** Says what the button is and what tapping it does, never colour or icon. */
 const micLabel = (phase: VoicePhase): string => {
   switch (phase) {
+    case 'paused':
+      return 'Conversation paused. Tap to resume.';
     case 'listening':
       return 'Microphone on. Tap to mute and send what you said.';
     case 'processing':
@@ -225,6 +238,8 @@ const micLabel = (phase: VoicePhase): string => {
 
 const micHint = (phase: VoicePhase): string => {
   switch (phase) {
+    case 'paused':
+      return 'Picks the conversation back up where it stopped';
     case 'listening':
       return 'Stops recording and sends what you said';
     case 'speaking':
