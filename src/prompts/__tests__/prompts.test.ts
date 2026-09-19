@@ -7,6 +7,7 @@ import {
   buildLevelAssessmentPrompt,
   buildOpeningLine,
   buildTopicOptimizationPrompt,
+  pickOpeningLine,
 } from '@/prompts';
 import type { Conversation, Topic, TurnAnalysis } from '@/types';
 import { INITIAL_PROGRESS } from '@/utils/cefr';
@@ -170,6 +171,31 @@ describe('buildOpeningLine', () => {
   it('does not force a name where there is no greeting slot', () => {
     const line = 'So. Walk me through what happened.';
     expect(buildOpeningLine(line, 'Rashid')).toBe(line);
+  });
+});
+
+describe('pickOpeningLine', () => {
+  const lines = ['One.', 'Two.', 'Three.'];
+
+  it('only ever returns a line the topic actually has', () => {
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      expect(lines).toContain(pickOpeningLine(lines));
+    }
+  });
+
+  it('reaches every line rather than favouring the first', () => {
+    const seen = new Set(Array.from({ length: 200 }, () => pickOpeningLine(lines)));
+    expect(seen.size).toBe(lines.length);
+  });
+
+  it('skips blanks instead of opening the conversation on one', () => {
+    expect(pickOpeningLine(['', '   ', 'The only real one.'])).toBe('The only real one.');
+  });
+
+  it('falls back to something sayable when a stored topic has none', () => {
+    // A conversation must never open on an empty message: that reads as the
+    // partner having failed to load rather than as a missing field.
+    expect(pickOpeningLine([]).length).toBeGreaterThan(0);
   });
 });
 

@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 
 import { AppText } from '@/components/ui/AppText';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, type IconName } from '@/components/ui/Icon';
 import { durations, useTheme, type Theme } from '@/theme';
 import type { VoicePhase } from '@/types';
 
@@ -49,7 +49,7 @@ export function MicControls({
   const micBackground = listening ? theme.colors.listening : theme.colors.primary;
   // The listening fill is a bright mint in dark themes and a deep green in
   // light ones, so the glyph has to flip rather than always going dark.
-  const micGlyph = listening && theme.isDark ? theme.colors.ink : theme.colors.onPrimary;
+  const micTint = listening && theme.isDark ? theme.colors.ink : theme.colors.onPrimary;
 
   // A tick as the mic opens and another as it closes, so the learner can start
   // and stop talking without watching the screen.
@@ -111,7 +111,7 @@ export function MicControls({
           },
         ]}
       >
-        <Icon name={paused ? 'play' : listening ? 'mic' : 'micOff'} size={26} color={micGlyph} />
+        <Icon name={micGlyph(phase)} size={26} color={micTint} />
       </Pressable>
     </View>
   );
@@ -220,8 +220,19 @@ const dotFor = (phase: VoicePhase, theme: Theme): string => {
   }
 };
 
+/**
+ * Which glyph the mic button wears.
+ *
+ * Exported, along with the label and hint below, because the call screen shows
+ * the same control on its own dock: it is one button in two places, and a
+ * second copy of this mapping would be a second chance for them to disagree
+ * about what the microphone is currently doing.
+ */
+export const micGlyph = (phase: VoicePhase): IconName =>
+  phase === 'paused' ? 'play' : phase === 'listening' ? 'mic' : 'micOff';
+
 /** Says what the button is and what tapping it does, never colour or icon. */
-const micLabel = (phase: VoicePhase): string => {
+export const micLabel = (phase: VoicePhase): string => {
   switch (phase) {
     case 'paused':
       return 'Conversation paused. Tap to resume.';
@@ -236,7 +247,7 @@ const micLabel = (phase: VoicePhase): string => {
   }
 };
 
-const micHint = (phase: VoicePhase): string => {
+export const micHint = (phase: VoicePhase): string => {
   switch (phase) {
     case 'paused':
       return 'Picks the conversation back up where it stopped';

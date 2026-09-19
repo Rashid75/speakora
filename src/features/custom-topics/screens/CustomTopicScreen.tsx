@@ -81,12 +81,17 @@ export function CustomTopicScreen({ navigation }: Props): React.JSX.Element {
             {draft.scenario}
           </AppText>
 
+          {/* All of them, not just the first: the learner is about to see one
+              of these at random, and showing a single line would promise an
+              opening the conversation may well not use. */}
           <AppText variant="caption" color="textTertiary" style={styles.label}>
-            THEY WILL OPEN WITH
+            {draft.openingLines.length > 1 ? 'THEY MIGHT OPEN WITH' : 'THEY WILL OPEN WITH'}
           </AppText>
-          <AppText variant="body" color="textSecondary" style={styles.opening}>
-            “{draft.openingLine}”
-          </AppText>
+          {draft.openingLines.map((line) => (
+            <AppText key={line} variant="body" color="textSecondary" style={styles.opening}>
+              “{line}”
+            </AppText>
+          ))}
 
           {draft.talkingPoints.length > 0 ? (
             <>

@@ -1,5 +1,6 @@
 import { CONVERSATION_LIMITS, STORAGE_SCHEMA_VERSION } from '@/config/appConfig';
-import { buildOpeningLine } from '@/prompts';
+import { openingLinesFor } from '@/data/topics';
+import { buildOpeningLine, pickOpeningLine } from '@/prompts';
 import { conversationRepository, progressRepository } from '@/repositories';
 import { getAIProvider } from '@/services/ai';
 import { createLogger } from '@/services/logging/logger';
@@ -35,7 +36,10 @@ const log = createLogger('ConversationService');
  */
 
 export const createConversation = (topic: Topic, settings: AppSettings): Conversation => {
-  const openingText = buildOpeningLine(topic.openingLine, settings.profile.name);
+  const openingText = buildOpeningLine(
+    pickOpeningLine(openingLinesFor(topic)),
+    settings.profile.name,
+  );
 
   const opening: ConversationMessage = {
     id: createId('msg'),

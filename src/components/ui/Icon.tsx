@@ -1,5 +1,5 @@
 import React from 'react';
-import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 
 /**
  * The icon set from the design handoff, transcribed path-for-path.
@@ -30,11 +30,15 @@ export type IconName =
   | 'woman'
   | 'man'
   | 'info'
-  | 'dots'
   | 'trash'
   | 'skip'
   | 'speaker'
   | 'play'
+  | 'phone'
+  | 'phoneDown'
+  | 'headset'
+  | 'captions'
+  | 'captionsOff'
   | 'logo';
 
 export interface IconProps {
@@ -69,6 +73,10 @@ type CommonProps = {
   strokeLinejoin: 'round';
   fill: 'none';
 };
+
+/** Drawn once and used twice: upright for `phone`, turned over for `phoneDown`. */
+const HANDSET =
+  'M7.2 3.4a1.8 1.8 0 011.7 1.1l1 2.4a1.8 1.8 0 01-.5 2.1l-1.1.9a12 12 0 005.8 5.8l.9-1.1a1.8 1.8 0 012.1-.5l2.4 1a1.8 1.8 0 011.1 1.7v2.3a2 2 0 01-2.2 2A17 17 0 013.1 5.6a2 2 0 012-2.2z';
 
 const renderPaths = (name: IconName, color: string, p: CommonProps): React.JSX.Element => {
   switch (name) {
@@ -164,14 +172,6 @@ const renderPaths = (name: IconName, color: string, p: CommonProps): React.JSX.E
           <Path d="M12 11v5M12 8h.01" {...p} />
         </>
       );
-    case 'dots':
-      return (
-        <>
-          <Circle cx={4} cy={12} r={2} fill={color} />
-          <Circle cx={12} cy={12} r={2} fill={color} />
-          <Circle cx={20} cy={12} r={2} fill={color} />
-        </>
-      );
     case 'play':
       // Filled, unlike the rest of the set: at mic size a stroked triangle
       // reads as an outline of a shape rather than as "play".
@@ -189,6 +189,45 @@ const renderPaths = (name: IconName, color: string, p: CommonProps): React.JSX.E
         <>
           <Path d="M5 6l6 6-6 6M12 6l6 6-6 6" {...p} />
           <Path d="M20 5v14" {...p} />
+        </>
+      );
+    case 'phone':
+      // The handset, upright. `phoneDown` is this exact shape turned over, so
+      // placing a call and ending one read as the same object either way up.
+      return <Path d={HANDSET} fill={color} />;
+    case 'phoneDown':
+      // The handset glyph, turned over. Hanging up is universally "the phone,
+      // upside down" - drawing a second, different handset would only invite
+      // the two to drift apart.
+      return (
+        <G transform="rotate(135 12 12)">
+          <Path d={HANDSET} fill={color} />
+        </G>
+      );
+    case 'headset':
+      // Headphones with a level trace between the cups: "we are listening",
+      // not "audio is playing".
+      return (
+        <>
+          <Path d="M4 14v-2a8 8 0 0116 0v2" {...p} />
+          <Rect x={2} y={13.5} width={4.4} height={6.5} rx={2.2} {...p} />
+          <Rect x={17.6} y={13.5} width={4.4} height={6.5} rx={2.2} {...p} />
+          <Path d="M9.4 15v3.5M12 12.8v8M14.6 15v3.5" {...p} />
+        </>
+      );
+    case 'captions':
+      return (
+        <>
+          <Rect x={2.5} y={5} width={19} height={14} rx={3.5} {...p} />
+          <Path d="M10.2 10.4a2.7 2.7 0 100 3.2M17 10.4a2.7 2.7 0 100 3.2" {...p} />
+        </>
+      );
+    case 'captionsOff':
+      return (
+        <>
+          <Rect x={2.5} y={5} width={19} height={14} rx={3.5} {...p} />
+          <Path d="M10.2 10.4a2.7 2.7 0 100 3.2M17 10.4a2.7 2.7 0 100 3.2" {...p} />
+          <Path d="M4 3l16 18" {...p} />
         </>
       );
     case 'trash':

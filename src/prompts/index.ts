@@ -1,6 +1,7 @@
 export {
   buildConversationSystemPrompt,
   buildOpeningLine,
+  pickOpeningLine,
   CONVERSATION_PROMPT_VERSION,
 } from './conversationPrompt';
 export { buildFeedbackPrompt, FEEDBACK_PROMPT_VERSION } from './feedbackPrompt';

@@ -1,4 +1,4 @@
-import type { PersonalityId } from '@/types';
+import type { PersonalityId, VoiceGender } from '@/types';
 import type { PortraitSpec } from './portraits';
 
 export interface Personality {
@@ -13,11 +13,15 @@ export interface Personality {
    */
   readonly initial: string;
   /**
-   * Which figure the avatar draws. Declared here rather than inferred from the
-   * name: these are fictional characters the product defines, and a name is not
-   * evidence of anything.
+   * Which figure the avatar draws, and which device voice this partner is
+   * given. Declared here rather than inferred from the name: these are
+   * fictional characters the product defines, and a name is not evidence of
+   * anything. The device may have no voice of that gender for the chosen
+   * accent, in which case the accent wins and `pitch` does what it can - the
+   * learner picked the accent, and swapping it out to chase a voice would be
+   * changing the thing they asked for.
    */
-  readonly avatarGlyph: 'woman' | 'man';
+  readonly gender: VoiceGender;
   /** Drawn in place of the letter wherever this partner is shown. */
   readonly portrait: PortraitSpec;
   /** Disc colour. Kept here rather than in the theme: it identifies a person. */
@@ -44,7 +48,7 @@ export const PERSONALITY_LIST: readonly Personality[] = [
     tagline: 'Warm, patient',
     description: 'Friendly, patient and encouraging. Good when you are nervous.',
     initial: 'A',
-    avatarGlyph: 'woman',
+    gender: 'female',
     portrait: {
       skin: '#E3AE86',
       skinShadow: '#C68E63',
@@ -72,11 +76,11 @@ export const PERSONALITY_LIST: readonly Personality[] = [
   },
   {
     id: 'elegant',
-    name: 'Noor',
+    name: 'Alex',
     tagline: 'Polished, direct',
     description: 'Articulate and professional. Best for interviews and work talk.',
-    initial: 'N',
-    avatarGlyph: 'man',
+    initial: 'A',
+    gender: 'male',
     portrait: {
       skin: '#B07A4E',
       skinShadow: '#8E5D36',
@@ -91,7 +95,7 @@ export const PERSONALITY_LIST: readonly Personality[] = [
     pitch: 0.94,
     rateModifier: 1.0,
     prompt: [
-      'Your name is Noor. You are 41, a strategy consultant who has spent years in meeting rooms, and you have strong, well-argued opinions.',
+      'Your name is Alex. You are 41, a strategy consultant who has spent years in meeting rooms, and you have strong, well-argued opinions.',
       'You are precise and composed. You choose your words carefully, you push back when you disagree, and you expect the other person to justify a claim.',
       'You are not cold - you have dry humour and you enjoy a good argument - but you do not gush.',
       'When someone makes a sweeping statement you will say so, politely and directly, and ask them to defend it.',
@@ -108,7 +112,7 @@ export const PERSONALITY_LIST: readonly Personality[] = [
     tagline: 'Fast, casual',
     description: 'Energetic, casual and modern. Lots of slang and quick banter.',
     initial: 'K',
-    avatarGlyph: 'woman',
+    gender: 'female',
     portrait: {
       skin: '#FAE0C8',
       skinShadow: '#E6C09D',

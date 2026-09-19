@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 
 import { BUILTIN_TOPICS } from '@/data/topics';
-import { buildReminder, syncDailyReminders } from '../NotificationService';
+import { REMINDER_HOUR, buildReminder, syncDailyReminders } from '../NotificationService';
 
 const scheduled = Notifications.scheduleNotificationAsync as jest.Mock;
 const cancelled = Notifications.cancelAllScheduledNotificationsAsync as jest.Mock;
@@ -34,6 +34,35 @@ describe('buildReminder', () => {
 
   it('varies the motivation line between consecutive days', () => {
     expect(buildReminder(0).body).not.toBe(buildReminder(1).body);
+  });
+});
+
+describe('when the reminders fire', () => {
+  it('queues them for the evening, not the morning', async () => {
+    await syncDailyReminders(true);
+    const hours = scheduled.mock.calls.map(([request]: [{ trigger: { date: Date } }]) =>
+      request.trigger.date.getHours(),
+    );
+    expect(hours.length).toBeGreaterThan(1);
+    expect(new Set(hours)).toEqual(new Set([REMINDER_HOUR]));
+    expect(REMINDER_HOUR).toBeGreaterThanOrEqual(17);
+  });
+
+  it('never queues one in the past', async () => {
+    const now = Date.now();
+    await syncDailyReminders(true);
+    for (const [request] of scheduled.mock.calls as [{ trigger: { date: Date } }][]) {
+      expect(request.trigger.date.getTime()).toBeGreaterThan(now);
+    }
+  });
+
+  it('carries the topic id so tapping it can open that topic', async () => {
+    await syncDailyReminders(true);
+    for (const [request] of scheduled.mock.calls as [
+      { content: { data: { topicId: string } } },
+    ][]) {
+      expect(BUILTIN_TOPICS.some((topic) => topic.id === request.content.data.topicId)).toBe(true);
+    }
   });
 });
 

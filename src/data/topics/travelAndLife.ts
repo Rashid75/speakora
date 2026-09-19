@@ -28,8 +28,11 @@ export const TRAVEL_AND_LIFE_TOPICS: readonly Topic[] = [
       'What are my options if I miss the connection?',
       'How long is the delay likely to be?',
     ],
-    openingLine:
+    openingLines: [
       'Good morning, travelling to Lisbon today? Can I take your passport - and are you checking anything into the hold, or is that all hand luggage?',
+      'Hello there. Just the one bag? Pop it on the belt for me. And can I see your passport and booking reference, please.',
+      'Morning. Where are you flying to today? Lovely. I will need your passport, and I should warn you the flight is showing a short delay at the moment.',
+    ],
   },
   {
     ...base,
@@ -53,8 +56,11 @@ export const TRAVEL_AND_LIFE_TOPICS: readonly Topic[] = [
       'Sorry, what does that mean exactly?',
       'So I should take it twice a day, with food?',
     ],
-    openingLine:
+    openingLines: [
       'Come in, have a seat. So, what brings you in today? Take your time - just tell me in your own words what has been going on.',
+      'Hello, come and sit down. I can see it has been a little while since we last saw you. What has been the trouble?',
+      'Right, take a seat. The notes say you rang on Monday about something that has been going on for a couple of weeks. Start from the beginning for me - when did you first notice it?',
+    ],
   },
   {
     ...base,
@@ -78,8 +84,11 @@ export const TRAVEL_AND_LIFE_TOPICS: readonly Topic[] = [
       'Would the landlord consider ...?',
       'How long is the minimum term?',
     ],
-    openingLine:
+    openingLines: [
       'Here we are - and honestly, this one will not be on the market long. Lovely light in the mornings, brand new kitchen. Have a look around, and shout if anything comes to mind.',
+      'Come in, come in. Mind the step. So this is the living room, obviously, and the bedroom is through there. What is it you are looking for, roughly - is it just you?',
+      'Thanks for coming out. I will be straight with you, I have got two other viewings on this today. Have a wander and tell me what you think.',
+    ],
   },
   {
     ...base,
@@ -103,8 +112,11 @@ export const TRAVEL_AND_LIFE_TOPICS: readonly Topic[] = [
       'Could I speak to someone who can authorise that?',
       'So to confirm, you will ... by Friday.',
     ],
-    openingLine:
+    openingLines: [
       'Customer service, you are speaking with Sam. I can see there is a note on your account - can you just confirm your postcode for me, and then tell me what the issue is?',
+      'Thanks for holding, sorry about the wait. Can I take your account number? Right, I have got you. So what is this regarding?',
+      'Hello, you are through to customer support. Before we start, can I confirm I am speaking with the account holder? Lovely. And what can I help with today?',
+    ],
   },
   {
     ...base,
@@ -128,8 +140,11 @@ export const TRAVEL_AND_LIFE_TOPICS: readonly Topic[] = [
       'I still feel like a bit of an outsider, honestly.',
       'Are you free next week at all?',
     ],
-    openingLine:
-      "You are the one who just moved here, right? Someone mentioned it. How are you finding it? And be honest - everyone says 'great, love it' for the first three months and then admits it is quite hard.",
+    openingLines: [
+      'You are the one who just moved here, right? Someone mentioned it. How are you finding it? And be honest - everyone says great, love it, for the first three months and then admits it is quite hard.',
+      'We keep ending up at the same things and I have never actually said hello properly. So - hello. How long have you been in the city?',
+      'I will be honest, I only came tonight because I have not left the house all week. Are you here on your own too, or do you know people?',
+    ],
   },
   {
     ...base,
@@ -153,8 +168,11 @@ export const TRAVEL_AND_LIFE_TOPICS: readonly Topic[] = [
       'Are there any charges I should know about?',
       'How long will that take to go through?',
     ],
-    openingLine:
+    openingLines: [
       'Hi there, take a seat. So you have come in about opening an account - have you got proof of address with you? It needs to be dated within the last three months, I am afraid.',
+      'Morning, how can I help? Right, I can certainly look at that for you. Have you banked with us before, or would this be a new account?',
+      'Come through. Before we start, I should say the system has been slow all morning, so do bear with me. What was it you needed sorting?',
+    ],
   },
   {
     ...base,
@@ -178,8 +196,11 @@ export const TRAVEL_AND_LIFE_TOPICS: readonly Topic[] = [
       'Let me give you a concrete example.',
       'I will grant you that, but ...',
     ],
-    openingLine:
+    openingLines: [
       'I want to properly argue about something. Pick anything you actually have a view on - remote work, social media, whatever - tell me your position, and I will take the other side and genuinely try to beat you.',
+      'Here is a game. Tell me something you believe that most people around you disagree with. Then I am going to argue against it as hard as I can, and we will see whose reasoning survives.',
+      'Let us disagree about something on purpose. You choose the subject, but choose one you actually care about - it is no fun if you do not mind losing.',
+    ],
   },
   {
     ...base,
@@ -203,7 +224,10 @@ export const TRAVEL_AND_LIFE_TOPICS: readonly Topic[] = [
       'Long story short ...',
       'You are joking - what did you do?',
     ],
-    openingLine:
+    openingLines: [
       'Tell me something that has happened to you that sounds made up. Everyone has one. I will go first if you want, but mine involves a wedding, a wrong train, and a suit I never got back.',
+      'Right, best story you have got. Does not have to be dramatic - the funniest ones never are. What is the one you always end up telling?',
+      'I want to hear about the worst day you have ever had that is now funny. There is always a gap of a few years before they become funny, so take your pick.',
+    ],
   },
 ];

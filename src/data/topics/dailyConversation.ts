@@ -28,8 +28,11 @@ export const DAILY_CONVERSATION_TOPICS: readonly Topic[] = [
       'What do you do, if you do not mind me asking?',
       'Oh really? How did you get into that?',
     ],
-    openingLine:
-      'Hey! I do not think we have met - I am grabbing a seat before this place fills up. I am Maya. Is this your first time at one of these?',
+    openingLines: [
+      'Hey! I do not think we have met - I am just grabbing a seat before this place fills up. Is this your first time at one of these?',
+      'Sorry, is anyone sitting here? Great, thanks. I always spend the first ten minutes at these things hovering awkwardly near the coffee. So what brought you along tonight?',
+      'Right, I am going to be brave and start a conversation rather than stare at my drink for an hour. Hi. Tell me something about yourself - anything, I am not fussy.',
+    ],
   },
   {
     ...base,
@@ -53,8 +56,11 @@ export const DAILY_CONVERSATION_TOPICS: readonly Topic[] = [
       'I might just take it easy, honestly.',
       'That sounds way better than what I had planned.',
     ],
-    openingLine:
+    openingLines: [
       'Right, so I have zero plans this weekend and I am weirdly stressed about it. What are you up to? Tell me you have something good so I can steal the idea.',
+      'It is Thursday, which in my head means the weekend has basically started already. Have you got anything on, or are you protecting the free time?',
+      'I have been invited to two things on Saturday and I want to go to neither of them. Talk me into something better - what does a genuinely good weekend look like for you?',
+    ],
   },
   {
     ...base,
@@ -78,8 +84,11 @@ export const DAILY_CONVERSATION_TOPICS: readonly Topic[] = [
       'I gave it up because I could never find the time.',
       'Does it not get repetitive after a while?',
     ],
-    openingLine:
+    openingLines: [
       'So I finally admitted to myself that I have spent more hours on my hobby this month than on sleep. Please tell me you have something equally unreasonable that you are into.',
+      'Someone asked me what I do for fun last week and I completely blanked, which is fairly depressing. What do you actually do with your free time?',
+      'I have this theory that everyone has one hobby they are secretly a bit too serious about. Mine is slightly embarrassing. Go on, what is yours?',
+    ],
   },
   {
     ...base,
@@ -103,8 +112,11 @@ export const DAILY_CONVERSATION_TOPICS: readonly Topic[] = [
       'I am more of a "book nothing and figure it out" person.',
       'That sounds like a nightmare - what did you do?',
     ],
-    openingLine:
+    openingLines: [
       'I saw a photo from a trip I took four years ago this morning and now I cannot concentrate on anything. Where is the last place you went that actually stuck with you?',
+      'I have got a week off in the spring and absolutely no idea what to do with it. Where should I go? And be honest, not just the obvious answer.',
+      'Every trip I have ever taken has gone wrong in some way, and those are the only bits I remember. Have you got a travel disaster? I will trade you one.',
+    ],
   },
   {
     ...base,
@@ -128,8 +140,11 @@ export const DAILY_CONVERSATION_TOPICS: readonly Topic[] = [
       'That is not how you are supposed to make it!',
       'I could eat that every single day.',
     ],
-    openingLine:
+    openingLines: [
       'I have just eaten the same pasta for the fourth night running and I have hit a wall. What do you actually cook when you cannot be bothered?',
+      'I am standing in front of an open fridge with no plan, which is roughly how every evening goes. Are you someone who plans meals, or do we suffer alike?',
+      'I will open with a food opinion I am prepared to defend: most restaurant food is worse than what you can make at home for a fifth of the price. Tell me I am wrong.',
+    ],
   },
   {
     ...base,
@@ -153,8 +168,11 @@ export const DAILY_CONVERSATION_TOPICS: readonly Topic[] = [
       'I know everyone loves it, but I just did not get it.',
       'No spoilers - I am only three episodes in!',
     ],
-    openingLine:
+    openingLines: [
       'Okay, controversial opinion to start: I think the show everyone is obsessed with right now is genuinely not that good. Go on, defend it - or tell me what I should be watching instead.',
+      'I have been scrolling the same streaming menu for twenty minutes and watched precisely nothing. Save me. What is actually worth my evening?',
+      'I finished a series last night and now I am in that empty stage where nothing else will do. What was the last thing you watched that properly got you?',
+    ],
   },
   {
     ...base,
@@ -178,8 +196,11 @@ export const DAILY_CONVERSATION_TOPICS: readonly Topic[] = [
       'Do you have this in a larger size?',
       'I would like to return this, I still have the receipt.',
     ],
-    openingLine:
-      'I just spent forty minutes reading reviews for a nine-pound phone charger. Forty minutes. Are you a researcher or do you just grab the first thing you see?',
+    openingLines: [
+      'I just spent forty minutes reading reviews for a nine-pound phone charger. Forty minutes. Are you a researcher, or do you just grab the first thing you see?',
+      "I bought something last month that I have used exactly once and I am still quietly annoyed about it. Do you get buyer's remorse, or are you more sensible than me?",
+      'Quick question - do you still go into actual shops, or does everything just arrive at your door now? I have completely stopped and I am not sure how I feel about it.',
+    ],
   },
   {
     ...base,
@@ -203,8 +224,11 @@ export const DAILY_CONVERSATION_TOPICS: readonly Topic[] = [
       'The money is fine, but the hours are brutal.',
       'Do you see yourself doing this in five years?',
     ],
-    openingLine:
+    openingLines: [
       'Someone asked me today whether I actually like my job and I gave this long waffly non-answer. Which probably means no? What about you - do you like what you do, honestly?',
+      'I had one of those days where I sat in six hours of meetings and produced absolutely nothing. What is it you do, and does it ever feel like that?',
+      'I keep seeing people who have quit everything to go and do something completely different. Half of me thinks they are brave and half of me thinks they will regret it. Where do you land?',
+    ],
   },
   {
     ...base,
@@ -228,8 +252,11 @@ export const DAILY_CONVERSATION_TOPICS: readonly Topic[] = [
       'We only see each other once a year, but it does not matter.',
       'I miss them more than I expected to.',
     ],
-    openingLine:
-      'I had a two-hour call with my sister last night and I realised we had not properly spoken in about four months. Are you good at keeping in touch with people, or are you like me?',
+    openingLines: [
+      'I had a two-hour call with my sister last night and realised we had not properly spoken in about four months. Are you good at keeping in touch, or are you like me?',
+      'My mum has sent me four voice notes today and I have listened to none of them. Are you close with your family, or is it complicated like mine?',
+      'I read somewhere that most people make their closest friends before twenty-five, which I find mildly terrifying. Has that been true for you?',
+    ],
   },
   {
     ...base,
@@ -253,7 +280,10 @@ export const DAILY_CONVERSATION_TOPICS: readonly Topic[] = [
       'I keep meaning to start, but I never do.',
       'It completely falls apart by Wednesday.',
     ],
-    openingLine:
+    openingLines: [
       'I set my alarm for six this morning with big plans. I got up at half past eight. So - are you one of those people who actually has a routine, or shall we suffer together?',
+      'Be honest, what time did you really get up today? I ask because I have been telling myself I am a morning person for about six years now.',
+      'I have just spent my entire lunch break doing nothing and now the afternoon feels ruined. How do you structure your day? Assuming you do, which already puts you ahead of me.',
+    ],
   },
 ];

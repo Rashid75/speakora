@@ -33,7 +33,14 @@ describe('topic catalogue', () => {
       expect(topic.emoji.length).toBeGreaterThan(0);
       // Without a scenario and an opening line there is nothing to run.
       expect(topic.scenario.length).toBeGreaterThan(40);
-      expect(topic.openingLine.length).toBeGreaterThan(10);
+      // Several, and genuinely different: a topic is worth running more than
+      // once, and the same first sentence every time makes the partner read as
+      // a recording.
+      expect(topic.openingLines.length).toBeGreaterThanOrEqual(3);
+      expect(new Set(topic.openingLines).size).toBe(topic.openingLines.length);
+      for (const line of topic.openingLines) {
+        expect(line.length).toBeGreaterThan(10);
+      }
       expect(topic.talkingPoints.length).toBeGreaterThanOrEqual(3);
       expect(topic.usefulPhrases.length).toBeGreaterThanOrEqual(3);
       expect(topic.estimatedMinutes).toBeGreaterThan(0);

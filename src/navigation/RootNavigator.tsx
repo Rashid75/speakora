@@ -24,6 +24,7 @@ import {
 import { ProfileSettingsScreen } from '@/features/settings/screens/ProfileSettingsScreen';
 import { useSettings } from '@/state/SettingsContext';
 import { useTheme, type Theme } from '@/theme';
+import { flushPendingNavigation, navigationRef } from './navigationRef';
 import { TabNavigator } from './TabNavigator';
 import type { RootStackParamList } from './types';
 
@@ -42,7 +43,13 @@ export function RootNavigator(): React.JSX.Element {
   const navigationTheme = useMemo(() => toNavigationTheme(theme), [theme]);
 
   return (
-    <NavigationContainer theme={navigationTheme}>
+    <NavigationContainer
+      ref={navigationRef}
+      theme={navigationTheme}
+      // A notification tapped from a cold start resolves before this exists,
+      // so anything that arrived early is replayed here.
+      onReady={flushPendingNavigation}
+    >
       <Stack.Navigator
         screenOptions={{
           headerStyle: { backgroundColor: theme.colors.background },

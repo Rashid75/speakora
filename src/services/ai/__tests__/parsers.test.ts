@@ -8,6 +8,36 @@ import {
 } from '@/services/ai/parsers';
 import { parseJsonObject } from '@/services/ai/json';
 
+describe('parseOptimizedTopic', () => {
+  const base = {
+    title: 'Ordering coffee',
+    summary: 'Practise ordering in a cafe.',
+    scenario: 'You are a barista in a busy independent cafe during the morning rush.',
+  };
+
+  it('keeps every opening the model wrote', () => {
+    const draft = parseOptimizedTopic(
+      JSON.stringify({ ...base, openingLines: ['Morning!', 'What can I get you?'] }),
+      'intermediate',
+    );
+    expect(draft?.openingLines).toEqual(['Morning!', 'What can I get you?']);
+  });
+
+  it('still builds a topic when the model sends one line under the old key', () => {
+    const draft = parseOptimizedTopic(
+      JSON.stringify({ ...base, openingLine: 'Morning! What can I get you?' }),
+      'intermediate',
+    );
+    expect(draft?.openingLines).toEqual(['Morning! What can I get you?']);
+  });
+
+  it('rejects a topic with nothing to open on', () => {
+    expect(parseOptimizedTopic(JSON.stringify({ ...base, openingLines: [] }), 'intermediate')).toBe(
+      undefined,
+    );
+  });
+});
+
 describe('parseJsonObject', () => {
   it('parses clean JSON', () => {
     expect(parseJsonObject('{"a":1}')).toEqual({ a: 1 });
@@ -43,7 +73,7 @@ describe('sanitiseSpokenText', () => {
 
   it('removes a speaker label the model added', () => {
     expect(sanitiseSpokenText('Aya: Oh, nice one.')).toBe('Oh, nice one.');
-    expect(sanitiseSpokenText('Noor: Go on.')).toBe('Go on.');
+    expect(sanitiseSpokenText('Alex: Go on.')).toBe('Go on.');
     // Leading whitespace and a gap before the colon must both be handled. This
     // fails if the \s escapes in the pattern collapse to a literal "s".
     expect(sanitiseSpokenText('  Kai : yeah exactly')).toBe('yeah exactly');

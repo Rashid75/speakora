@@ -8,7 +8,17 @@ module.exports = defineConfig([
   expoConfig,
   eslintConfigPrettier,
   {
-    ignores: ['dist/*', 'coverage/*', 'android/*', 'ios/*', '.expo/*', 'node_modules/*'],
+    // `scripts/` is Node tooling run by hand, not app code: it has Node
+    // globals the Expo config does not declare and ships in nothing.
+    ignores: [
+      'dist/*',
+      'coverage/*',
+      'android/*',
+      'ios/*',
+      '.expo/*',
+      'node_modules/*',
+      'scripts/*',
+    ],
   },
   {
     // In flat config a plugin must be in scope of the object that references

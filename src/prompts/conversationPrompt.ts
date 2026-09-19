@@ -143,6 +143,24 @@ const buildStateBlock = (request: ConversationTurnRequest, learnerName: string):
 };
 
 /**
+ * Picks which of a topic's authored openings this conversation gets.
+ *
+ * Random rather than round-robin: remembering which opener each of forty-odd
+ * topics used last would be persisted state earning its keep only on the rare
+ * back-to-back repeat, and a coin toss already breaks the sense that the
+ * partner says the exact same thing every single time.
+ *
+ * The empty case is a topic stored before openings became a list. It gets
+ * something neutral rather than an empty first message, which would look like
+ * the partner failed to load.
+ */
+export const pickOpeningLine = (lines: readonly string[]): string => {
+  const usable = lines.filter((line) => line.trim().length > 0);
+  if (usable.length === 0) return 'So - where would you like to start?';
+  return usable[Math.floor(Math.random() * usable.length)] as string;
+};
+
+/**
  * The AI's first line.
  *
  * We use the topic's authored opening rather than generating one: it makes the

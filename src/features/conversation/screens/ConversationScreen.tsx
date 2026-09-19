@@ -20,12 +20,15 @@ import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { ErrorState, LoadingState } from '@/components/ui/StateViews';
 import { getPersonality } from '@/data/personalities';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useSlowResponse } from '@/hooks/useSlowResponse';
 import type { RootStackParamList } from '@/navigation/types';
 import { conversationRepository } from '@/repositories';
 import { createConversation } from '@/services/conversation/ConversationService';
 import { useSettings } from '@/state/SettingsContext';
 import { HIT_SLOP, useTheme } from '@/theme';
 import type { AppFailure, Conversation, ConversationMessage } from '@/types';
+import { fadeOut } from '@/utils/color';
 import { copyFor } from '@/utils/errors';
 import { formatTimer } from '@/utils/time';
 import { ChatSettingsSheet } from '../components/ChatSettingsSheet';
@@ -34,17 +37,14 @@ import { MicControls } from '../components/MicControls';
 import { TranscriptTurn } from '../components/TranscriptTurn';
 import { TurnFeedbackSheet, type TurnFeedbackMode } from '../components/TurnFeedbackSheet';
 import { TypingIndicator } from '../components/TypingIndicator';
+import { AudioCallOverlay } from '../components/AudioCallOverlay';
 import { useConversationEngine } from '../hooks/useConversationEngine';
+import { useAudioCall, type CallPhase } from '../hooks/useAudioCall';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Conversation'>;
 
-/**
- * A fully transparent version of a palette colour, for the top of the scrim.
- * Fading to plain `transparent` interpolates through black on iOS, which shows
- * up as a grey smear over a light background.
- */
-const fadeOut = (color: string): string =>
-  /^#[0-9a-f]{6}$/i.test(color) ? `${color}00` : 'transparent';
+/** How long a reply may take before the wait is worth explaining. */
+const SLOW_REPLY_MS = 6000;
 
 /** Which turn's feedback sheet is open, and which face of it. */
 interface FeedbackTarget {
@@ -162,12 +162,17 @@ function ConversationSession({
     settings,
     isResumed,
   });
-  const { state } = engine;
+  // Destructured because these are stable callbacks while `engine` itself is
+  // rebuilt on every state change - an effect depending on the whole object
+  // would re-run once a second, on the timer tick.
+  const { state, openCall, releaseVoice, setCallMode } = engine;
 
   const personality = useMemo(
     () => getPersonality(settings.personalityId),
     [settings.personalityId],
   );
+
+  const call = useAudioCall();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackTarget | undefined>(undefined);
@@ -176,6 +181,12 @@ function ConversationSession({
 
   const messages = state.conversation.messages;
   const thinking = state.phase === 'processing' || state.phase === 'connecting';
+
+  // A reply normally lands well inside this. Past it, the silence needs
+  // explaining - otherwise a slow connection is indistinguishable from an app
+  // that has simply stopped working.
+  const { isOnline } = useNetworkStatus();
+  const isSlow = useSlowResponse(thinking, SLOW_REPLY_MS);
 
   // Skip is offered only on the question actually waiting for an answer: the
   // partner's message, when it is the last thing said and the engine is free to
@@ -196,6 +207,29 @@ function ConversationSession({
     () => (feedback ? messages.find((message) => message.id === feedback.messageId) : undefined),
     [feedback, messages],
   );
+
+  // Crossing between the chat and the call hands the voice channel over
+  // rather than sharing it. There is one microphone and one engine, so without
+  // this the call inherits whatever the chat had open - and, worse, hanging up
+  // leaves a live mic running behind a screen that shows no sign of it. Both
+  // sides start closed; the learner opens the mic on the screen they are on.
+  const previousCallPhase = useRef<CallPhase>('off');
+  useEffect(() => {
+    const previous = previousCallPhase.current;
+    previousCallPhase.current = call.phase;
+
+    if ((previous === 'off') !== (call.phase === 'off')) releaseVoice();
+
+    // Only a connected call overrides `autoSpeak`; ringing has nothing to say.
+    // Set before the greeting, so the hello is audible either way.
+    setCallMode(call.phase === 'connected');
+
+    // Picking up is a real moment in the conversation, not a screen change:
+    // the partner says hello and picks the thread back up where the chat left
+    // it. Their answer joins the transcript; the learner is credited with
+    // nothing, because they said nothing.
+    if (previous !== 'connected' && call.phase === 'connected') openCall();
+  }, [call.phase, openCall, releaseVoice, setCallMode]);
 
   useEffect(() => {
     if (messages.length === 0) return;
@@ -240,12 +274,19 @@ function ConversationSession({
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      // Back during a call leaves the call, not the conversation. The modal
+      // normally swallows the event first; this is here for the platforms and
+      // versions where it does not.
+      if (call.phase !== 'off') {
+        call.hangUp();
+        return true;
+      }
       if (state.phase === 'ended' || state.conversation.stats.userTurns === 0) return false;
       confirmEnd();
       return true;
     });
     return () => subscription.remove();
-  }, [confirmEnd, state.conversation.stats.userTurns, state.phase]);
+  }, [call, confirmEnd, state.conversation.stats.userTurns, state.phase]);
 
   const showGrammar = useCallback((message: ConversationMessage) => {
     setFeedback({ messageId: message.id, mode: 'grammar' });
@@ -327,17 +368,65 @@ function ConversationSession({
           </AppText>
         </View>
 
-        <Pressable
-          onPress={() => setSettingsOpen(true)}
-          hitSlop={HIT_SLOP}
-          accessibilityRole="button"
-          accessibilityLabel="Conversation settings"
-          accessibilityHint="Change the voice, accent, speed and difficulty without leaving the chat"
-          style={[styles.headerButton, { backgroundColor: theme.colors.surfaceMuted }]}
-        >
-          <Icon name="dots" size={20} color={theme.colors.text} />
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            onPress={() => call.start(messages.length)}
+            hitSlop={HIT_SLOP}
+            accessibilityRole="button"
+            accessibilityLabel={`Call ${personality.name}`}
+            accessibilityHint="Starts a voice call on this same conversation"
+            style={[styles.headerButton, { backgroundColor: theme.colors.surfaceMuted }]}
+          >
+            <Icon name="phone" size={20} color={theme.colors.text} />
+          </Pressable>
+
+          <Pressable
+            onPress={() => setSettingsOpen(true)}
+            hitSlop={HIT_SLOP}
+            accessibilityRole="button"
+            accessibilityLabel="Conversation settings"
+            accessibilityHint="Change the voice, accent, speed and difficulty without leaving the chat"
+            style={[styles.headerButton, { backgroundColor: theme.colors.surfaceMuted }]}
+          >
+            <Icon name="sliders" size={20} color={theme.colors.text} />
+          </Pressable>
+        </View>
       </View>
+
+      {/* Directly under the header rather than in the transcript: this is a
+          condition of the whole screen, not another turn in the conversation,
+          and it must not scroll away while it still applies. */}
+      {!isOnline || isSlow ? (
+        <View
+          style={[
+            styles.connection,
+            {
+              backgroundColor: isOnline ? theme.colors.warningSoft : theme.colors.dangerSoft,
+              borderRadius: theme.radius.md,
+            },
+          ]}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+        >
+          <View
+            style={[
+              styles.connectionDot,
+              { backgroundColor: isOnline ? theme.colors.warning : theme.colors.danger },
+            ]}
+          />
+          <AppText
+            variant="footnote"
+            style={[
+              styles.flex,
+              { color: isOnline ? theme.colors.warningText : theme.colors.danger },
+            ]}
+          >
+            {isOnline
+              ? 'Still waiting for a reply. Your connection looks slow.'
+              : 'No connection. Your partner cannot reply until you are back online.'}
+          </AppText>
+        </View>
+      ) : null}
 
       <View style={styles.flex}>
         <FlatList
@@ -438,6 +527,30 @@ function ConversationSession({
         onClose={() => setFeedback(undefined)}
       />
 
+      {/* Mounted only while a call is up, and as a modal over this screen
+          rather than as a route: the chat, the engine and the timer stay
+          exactly as they were, so hanging up is a return, not a reload. */}
+      {call.phase === 'off' ? null : (
+        <AudioCallOverlay
+          phase={call.phase}
+          partner={personality}
+          voicePhase={state.phase}
+          // Only what has been said since the call was placed. The chat is
+          // still there behind the modal; repeating it here would make the
+          // call the same screen with a bigger picture.
+          messages={messages.slice(call.fromTurn)}
+          interimTranscript={state.interimTranscript}
+          subtitlesOn={call.subtitlesOn}
+          elapsedMs={call.elapsedMs}
+          failure={state.failure}
+          onDismissError={engine.dismissError}
+          onToggleSubtitles={call.toggleSubtitles}
+          onToggleMic={engine.toggleListening}
+          onResume={engine.resume}
+          onHangUp={call.hangUp}
+        />
+      )}
+
       <ChatSettingsSheet
         visible={settingsOpen}
         isPaused={state.isPaused}
@@ -468,7 +581,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerCenter: { flex: 1, alignItems: 'center', gap: 2 },
+  connection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  connectionDot: { width: 7, height: 7, borderRadius: 3.5 },
   list: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16, gap: 14, flexGrow: 1 },
   banner: { marginHorizontal: 20, marginBottom: 8, padding: 12 },
   bannerBody: { marginTop: 2 },

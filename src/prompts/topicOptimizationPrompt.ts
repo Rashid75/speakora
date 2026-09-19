@@ -54,7 +54,7 @@ const SCHEMA = `{
   "scenario": string,
   "talkingPoints": string[],
   "usefulPhrases": string[],
-  "openingLine": string,
+  "openingLines": string[],
   "suggestedDifficulty": "beginner" | "elementary" | "intermediate" | "upper_intermediate" | "advanced" | "expert"
 }`;
 
@@ -65,6 +65,6 @@ const FIELD_RULES = joinLines([
   '- scenario: 2-4 sentences addressed to the AI ("You are a CTO who..."). Include who the AI is, what the setting is, what the AI wants from the conversation, and what should make it difficult.',
   '- talkingPoints: 3-5 short phrases describing directions the conversation could go. Not questions, not a script.',
   '- usefulPhrases: 3-5 complete phrases the learner is likely to need, written as they would actually be said.',
-  '- openingLine: the exact first sentence the AI character says out loud to open the conversation. Natural spoken English, 1-3 sentences, in character, no greeting boilerplate unless it fits the scene.',
+  '- openingLines: exactly 3 different things the AI character could open the conversation with, each 1-3 sentences of natural spoken English, in character, no greeting boilerplate unless it fits the scene. They must be genuinely different ways in - a different angle, mood or detail each time - not one sentence reworded, because the learner will run this topic more than once.',
   '- suggestedDifficulty: one of the listed values.',
 ]);

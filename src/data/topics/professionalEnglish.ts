@@ -28,8 +28,11 @@ export const PROFESSIONAL_ENGLISH_TOPICS: readonly Topic[] = [
       'One thing I would flag is ...',
       'So the action on me is ..., by Thursday.',
     ],
-    openingLine:
+    openingLines: [
       'Okay, we have got twenty minutes and three things to get through, so let us move. First item is the timeline - it has slipped again. Before I give my view, what is your honest read on where we are?',
+      'Right, thanks everyone for making it. I want to come out of this with a decision rather than another meeting. First thing on the list is budget. Where do you stand?',
+      'Let us start at the difficult end. We cannot do everything on this list by the end of the quarter, so something is coming off. You know the work better than I do - what goes?',
+    ],
   },
   {
     ...base,
@@ -53,8 +56,11 @@ export const PROFESSIONAL_ENGLISH_TOPICS: readonly Topic[] = [
       'I could be wrong, but my sense is ...',
       'Actually, now you put it like that ...',
     ],
-    openingLine:
+    openingLines: [
       'I am going to put you on the spot. The team is split on whether we ship the half-finished version next week or hold it for a month. I know what I think. What do you think - and I mean actually think, not the diplomatic answer.',
+      'Settle something for me. Half the office reckons we should scrap the whole approach and start again. Where are you on that? And please do not say it depends.',
+      'I want your real view on something before I go into this meeting and commit us. Do you think this is worth doing at all? I would rather hear no now than in six weeks.',
+    ],
   },
   {
     ...base,
@@ -78,8 +84,11 @@ export const PROFESSIONAL_ENGLISH_TOPICS: readonly Topic[] = [
       'I am not sure that follows, because ...',
       'Where I think we agree is ...',
     ],
-    openingLine:
+    openingLines: [
       'I want to make the case for cutting the scope in half. I know you have been pushing for the full version and I understand why, but I think we are about to over-build something nobody asked for. Talk me out of it.',
+      'I think we are making a mistake, and I would rather say it now than sulk about it later. Moving the deadline does not fix the problem, it just hides it for a month. Tell me why I am wrong.',
+      'Can I push back on the plan? Not because I want a different one, but because I do not think the reasoning holds. Can you walk me through why this is the right call?',
+    ],
   },
   {
     ...base,
@@ -103,8 +112,11 @@ export const PROFESSIONAL_ENGLISH_TOPICS: readonly Topic[] = [
       'That is a fair challenge - here is how I would handle it.',
       'What I am asking for today is ...',
     ],
-    openingLine:
+    openingLines: [
       'Right, you have got the floor. I have read the one-pager but assume I have not. Start from the beginning - what is the problem, and why should I care about it this quarter rather than next year?',
+      'I have got fifteen minutes and three of these to hear today, so make it count. What are you proposing, and what does it cost me?',
+      'Before you start - I am going to be sceptical, and that is not personal. Go on. Convince me this is the best thing we could be doing with the money.',
+    ],
   },
   {
     ...base,
@@ -128,8 +140,11 @@ export const PROFESSIONAL_ENGLISH_TOPICS: readonly Topic[] = [
       'What does ... stand for, sorry?',
       'Let me play that back to you.',
     ],
-    openingLine:
+    openingLines: [
       'Great, so the way it works is the ingest layer hits the CDP, we dedupe against the golden record, and then the downstream consumers pick it up off the bus - assuming the TTL has not expired, obviously. Any questions before we move on?',
+      'Right, quick context before we get into it. This sits behind the gateway, talks to the reconciliation service over gRPC, and the whole thing is driven off the event store rather than the primary. You are with me so far, yes?',
+      'So the reason it failed is the batch job ran before the nightly sync had settled, which meant the deltas were stale, so the reconciler rejected the whole file. Classic. Anyway, shall we look at the fix?',
+    ],
   },
   {
     ...base,
@@ -153,8 +168,11 @@ export const PROFESSIONAL_ENGLISH_TOPICS: readonly Topic[] = [
       'How does that land with you?',
       'What would help you from my side?',
     ],
-    openingLine:
+    openingLines: [
       'You said you wanted a quick word? Before you start - if this is about the release notes, I know, and I have got a whole list of reasons why that was not really on me.',
+      'Have I done something? You have got that face on. Go on then, let us hear it - I would rather know than wonder about it all afternoon.',
+      'Sorry, I know I am late. I have been late to about four of these now, actually. Is that what this is about?',
+    ],
   },
   {
     ...base,
@@ -178,8 +196,11 @@ export const PROFESSIONAL_ENGLISH_TOPICS: readonly Topic[] = [
       'I would like to understand the thinking behind ...',
       'What would you do if you were in my position?',
     ],
-    openingLine:
+    openingLines: [
       'You booked this one in rather than me, which usually means something is on your mind. Go on - what did you want to talk about?',
+      'Right, I have got half an hour and no agenda, which is a rare and beautiful thing. What is on your list?',
+      'Before we start - is this a good conversation or a difficult one? I would quite like to know which face to put on.',
+    ],
   },
   {
     ...base,
@@ -203,8 +224,11 @@ export const PROFESSIONAL_ENGLISH_TOPICS: readonly Topic[] = [
       'I understand why that is frustrating.',
       'There are two options - let me walk you through both.',
     ],
-    openingLine:
+    openingLines: [
       'Thanks for jumping on. I will be honest, I have got my director asking me every day when this is going live, and I have been telling him the fifteenth. Your message this morning suggests that is no longer true. Talk me through it.',
+      'I have read the update you sent over and I am not going to pretend I am happy with it. Before I take this to my board, I need to understand what actually went wrong. Start from the top.',
+      'Right. I have got twenty minutes and I need to walk out of this able to tell my team something. What is the new date, and what makes you confident about it this time?',
+    ],
   },
   {
     ...base,
@@ -228,7 +252,10 @@ export const PROFESSIONAL_ENGLISH_TOPICS: readonly Topic[] = [
       'Anyway, I should let you get on.',
       'Tell me about it - same here.',
     ],
-    openingLine:
+    openingLines: [
       'Oh, someone else who has given up on the meeting-free morning idea. Is that your second coffee or are we not counting today? How is your week going, anyway?',
+      'This machine has been making the same noise for three weeks and nobody has done anything about it. How are you? Have you had a decent week or one of those ones?',
+      'You have got the look of someone who has just come out of a long meeting. Anything interesting, or the usual? Also, did you do anything at the weekend or just recover?',
+    ],
   },
 ];

@@ -1,6 +1,9 @@
 import type { AccentId, SpeakingSpeed } from './settings';
 
 /** A concrete voice offered by the device TTS engine. */
+/** How a voice reads to a listener. Not every device voice declares one. */
+export type VoiceGender = 'male' | 'female';
+
 export interface DeviceVoice {
   readonly identifier: string;
   readonly name: string;

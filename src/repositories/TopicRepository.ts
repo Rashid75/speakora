@@ -1,4 +1,4 @@
-import { BUILTIN_TOPICS, getBuiltinTopic } from '@/data/topics';
+import { BUILTIN_TOPICS, getBuiltinTopic, openingLinesFor } from '@/data/topics';
 import type { AppFailure, Result, Topic } from '@/types';
 import { getStorage, STORAGE_KEYS } from './storage/StorageAdapter';
 
@@ -26,9 +26,21 @@ const isTopic = (value: unknown): value is Topic => {
     typeof candidate.id === 'string' &&
     typeof candidate.title === 'string' &&
     typeof candidate.scenario === 'string' &&
-    typeof candidate.openingLine === 'string'
+    openingLinesFor(candidate as Topic).length > 0
   );
 };
+
+/**
+ * Brings a stored topic up to the current shape.
+ *
+ * Custom topics saved before openings became a list carry a single one;
+ * folding it into the list here means nothing downstream has to know that, and
+ * the learner's own topics keep the opener they were written with.
+ */
+const normaliseTopic = (topic: Topic): Topic => ({
+  ...topic,
+  openingLines: openingLinesFor(topic),
+});
 
 class LocalTopicRepository implements TopicRepository {
   listBuiltin(): readonly Topic[] {
@@ -40,6 +52,7 @@ class LocalTopicRepository implements TopicRepository {
     if (!result.ok || !Array.isArray(result.value)) return [];
     return result.value
       .filter(isTopic)
+      .map(normaliseTopic)
       .sort((a, b) => Date.parse(b.createdAt ?? '') - Date.parse(a.createdAt ?? ''));
   }
 

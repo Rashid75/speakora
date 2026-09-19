@@ -38,8 +38,15 @@ export interface Topic {
   readonly talkingPoints: readonly string[];
   /** Vocabulary the learner is likely to need. Surfaced in the setup sheet. */
   readonly usefulPhrases: readonly string[];
-  /** First line the AI says, so a conversation never starts with silence. */
-  readonly openingLine: string;
+  /**
+   * The lines the AI can open with, one of which is picked per conversation.
+   *
+   * A list rather than a single line because a topic is worth running more
+   * than once, and hearing the same sentence word for word on the third
+   * attempt makes the partner feel like a recording rather than a person.
+   * Every entry has to work as a cold open on its own.
+   */
+  readonly openingLines: readonly string[];
   readonly source: TopicSource;
   readonly createdAt?: string;
   /** Only present for custom topics: what the learner originally typed. */
@@ -55,6 +62,6 @@ export interface OptimizedTopicDraft {
   readonly scenario: string;
   readonly talkingPoints: readonly string[];
   readonly usefulPhrases: readonly string[];
-  readonly openingLine: string;
+  readonly openingLines: readonly string[];
   readonly suggestedDifficulty: Difficulty;
 }

@@ -207,11 +207,19 @@ export const parseOptimizedTopic = (
   if (!json) return undefined;
 
   const scenario = asString(json.scenario);
-  const openingLine = sanitiseSpokenText(asString(json.openingLine));
   const title = asString(json.title);
+  // A model that ignores the plural and sends one string still yields a usable
+  // topic, rather than a rejected one.
+  const openingLines = (
+    Array.isArray(json.openingLines)
+      ? asStringArray(json.openingLines, 5)
+      : [asString(json.openingLine)]
+  )
+    .map((line) => sanitiseSpokenText(line))
+    .filter((line) => line.length > 0);
 
   // Without these three there is nothing to run a conversation from.
-  if (!scenario || !openingLine || !title) return undefined;
+  if (!scenario || openingLines.length === 0 || !title) return undefined;
 
   return {
     title: title.slice(0, 60),
@@ -220,7 +228,7 @@ export const parseOptimizedTopic = (
     scenario,
     talkingPoints: asStringArray(json.talkingPoints, 5),
     usefulPhrases: asStringArray(json.usefulPhrases, 5),
-    openingLine,
+    openingLines,
     suggestedDifficulty: asDifficulty(json.suggestedDifficulty, fallbackDifficulty),
   };
 };

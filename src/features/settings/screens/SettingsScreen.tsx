@@ -341,7 +341,7 @@ export function SettingsScreen(): React.JSX.Element {
               Daily practice reminder
             </AppText>
             <AppText variant="footnote" color="neutral">
-              One nudge a morning with a topic to try
+              One nudge an evening with a topic to try
             </AppText>
           </View>
           <Switch

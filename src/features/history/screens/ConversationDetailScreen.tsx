@@ -207,7 +207,7 @@ function TranscriptRow({
         <AppText variant="footnote" color="textTertiary">
           {partnerName} · {formatClockTime(message.createdAt)}
         </AppText>
-        <AppText variant="body" color="textSecondary">
+        <AppText variant="body" color="textSecondary" selectable>
           {message.text}
         </AppText>
       </View>
@@ -230,7 +230,9 @@ function TranscriptRow({
           },
         ]}
       >
-        <AppText variant="body">{message.text}</AppText>
+        <AppText variant="body" selectable>
+          {message.text}
+        </AppText>
 
         {showPolished ? (
           <View

@@ -28,8 +28,11 @@ export const EXAMS_AND_INTERVIEWS_TOPICS: readonly Topic[] = [
       'Not particularly, no. I would rather ...',
       'That is a good question - I suppose ...',
     ],
-    openingLine:
-      'Good morning. My name is Adrian and this is the speaking test. Can you tell me your full name, please? And where are you from?',
+    openingLines: [
+      'Good morning. This is the speaking test. Can you tell me your full name, please? And where are you from?',
+      'Good afternoon. Before we begin, could you confirm your full name and show me your identification? Thank you. Now, let us talk about where you live. Do you live in a house or a flat?',
+      'Hello, and welcome. Can I have your full name, please? Thank you. In this first part I am going to ask you some questions about yourself. Let us start with your work. Do you work, or are you a student?',
+    ],
   },
   {
     ...base,
@@ -53,8 +56,11 @@ export const EXAMS_AND_INTERVIEWS_TOPICS: readonly Topic[] = [
       'What made it memorable was ...',
       'So overall, that is why ...',
     ],
-    openingLine:
+    openingLines: [
       'Now I am going to give you a topic and I would like you to talk about it for one to two minutes. Here is your topic: describe a skill you would like to learn. You should say what the skill is, why you want to learn it, and how you would go about it. You have one minute to think. Tell me when you are ready.',
+      'In this part I will give you a topic to speak about for one to two minutes. Your topic is: describe a journey that did not go as planned. You should say where you were going, what went wrong, and how you felt about it afterwards. You have one minute to prepare.',
+      'Here is your cue card. I would like you to describe a person who has influenced you. You should say who they are, how you know them, and what it is about them that has stayed with you. You have one minute to make notes, and then I would like you to speak for one to two minutes.',
+    ],
   },
   {
     ...base,
@@ -78,8 +84,11 @@ export const EXAMS_AND_INTERVIEWS_TOPICS: readonly Topic[] = [
       'It is difficult to say, but I imagine ...',
       'That said, you could equally argue ...',
     ],
-    openingLine:
+    openingLines: [
       'We have been talking about learning new skills, and I would like to widen the discussion. Why do you think adults often find it harder to learn new things than children do?',
+      'Let us move on to some more general questions about travel. Do you think tourism brings more benefits or more problems to a country?',
+      "I would like to broaden the discussion now. We talked about people who influence us - how much do you think a person's character is shaped by the people around them, rather than by their own choices?",
+    ],
   },
   {
     ...base,
@@ -103,8 +112,11 @@ export const EXAMS_AND_INTERVIEWS_TOPICS: readonly Topic[] = [
       'A concrete example of that would be ...',
       'Can I ask you something about the team?',
     ],
-    openingLine:
+    openingLines: [
       'Thanks for coming in. This first conversation is fairly informal - I mostly want to understand your background and what you are looking for. So let us start with the obvious one: why this role?',
+      'Good to meet you. I have got about half an hour and a fairly standard set of questions, so let us get into it. Tell me a bit about what you are doing at the moment and why you are looking to move.',
+      'Thanks for making the time. Before I tell you about us, I would rather hear from you. What made you apply? And be specific - I get a lot of answers about company culture.',
+    ],
   },
   {
     ...base,
@@ -128,8 +140,11 @@ export const EXAMS_AND_INTERVIEWS_TOPICS: readonly Topic[] = [
       'Could we look at the other elements of the package?',
       'I would be comfortable at ...',
     ],
-    openingLine:
+    openingLines: [
       'Good news - we would like to make you an offer. The team were really positive. The number we have landed on is a little below what you mentioned at the start, so I wanted to talk it through with you directly rather than just send it over.',
+      'So, we want you. I will not keep you in suspense. The package is at the lower end of the band you gave us, and before you react, I would like to explain why and hear what you think.',
+      'Right, offer conversation. I have got a number, you have got a number, and they are not the same number. Shall we do this the straightforward way? Tell me what you were expecting and why.',
+    ],
   },
   {
     ...base,
@@ -153,7 +168,10 @@ export const EXAMS_AND_INTERVIEWS_TOPICS: readonly Topic[] = [
       'I think there may be a misunderstanding - what I meant was ...',
       'Short answer: yes. Slightly longer answer ...',
     ],
-    openingLine:
+    openingLines: [
       'Thanks for the talk, that was interesting. I have got one question though. You showed the results from a fairly small sample - what makes you confident that scales to a much larger population?',
+      'Good talk. Can I ask about the bit you skipped over? You mentioned the approach failed the first time round and then moved straight on. What actually went wrong?',
+      'Thanks, that was clear. I want to push on the conclusion though. Everything you showed is consistent with your explanation, but it is also consistent with a much duller one. How would you tell the two apart?',
+    ],
   },
 ];

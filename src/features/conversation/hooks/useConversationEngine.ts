@@ -54,6 +54,18 @@ const TICK_MS = 1000;
 const SKIP_REQUEST =
   'Sorry, I would rather not answer that one. Could you ask me something else about this topic instead?';
 
+/**
+ * What the learner "says" on answering a call.
+ *
+ * Phrased as them picking up the phone, for the same reason as `SKIP_REQUEST`:
+ * the partner is written as a person, and a bare instruction ("greet them,
+ * then resume") makes them step out of character to follow it. Answering a
+ * call with a hello and a "where were we" is just what people do, and it gets
+ * the greeting and the returned question without asking for either.
+ */
+const CALL_GREETING =
+  "Hi! I've picked up - we're talking out loud now instead of messaging. Good to hear you. So, where were we? Carry on from what you were asking me.";
+
 export interface ConversationEngine {
   readonly state: ConversationState;
   readonly canListen: boolean;
@@ -63,12 +75,35 @@ export interface ConversationEngine {
   sendText(text: string): void;
   /** Stops the AI mid-sentence so the user can jump in. */
   interrupt(): void;
-  /** Asks the partner for a different question, without answering this one. */
+  /**
+   * Closes the microphone and silences the partner, without pausing or ending
+   * anything. For handing the voice channel between two screens that share
+   * one engine - whatever was being said is discarded, not committed.
+   */
+  releaseVoice(): void;
+  /**
+   * Asks the partner for a different question, without answering this one.
+   *
+   * Sent as speech, because that is what it is - a learner declining a question
+   * is a normal conversational move, and the partner should handle it in
+   * character rather than being reset.
+   */
   skipQuestion(): void;
+  /**
+   * Answers a call: the partner says hello and picks the thread back up
+   * where the chat left it, the way anyone would on being called.
+   */
+  openCall(): void;
   /** Throws away this conversation and starts the same topic again, clean. */
   restart(): void;
   pause(): void;
   resume(): void;
+  /**
+   * Switches the engine into (or out of) call behaviour: the partner is
+   * audible whatever `autoSpeak` says, for as long as the call is up. The
+   * microphone is untouched - it stays the learner's to open and close.
+   */
+  setCallMode(active: boolean): void;
   end(): Promise<Conversation>;
   openFeedback(messageId: string | undefined): void;
   dismissError(): void;
@@ -134,9 +169,43 @@ export function useConversationEngine({
   const utteranceStartedAt = useRef<number | undefined>(undefined);
   const isMounted = useRef(true);
 
+  /** A prompt the engine was too busy to send when it was asked for. */
+  const pendingPrompt = useRef<string | undefined>(undefined);
+
   /** Breaks the startListening <-> commitUserTurn cycle. */
   const startListeningRef = useRef<() => void>(() => undefined);
   const commitUserTurnRef = useRef<(input: UserTurnInput) => void>(() => undefined);
+
+  /**
+   * True while the learner is on a call.
+   *
+   * The call screen is voice-first: there is no transcript to fall back on if
+   * the partner stays silent, so they are audible there whatever `autoSpeak`
+   * says. That is the whole of the override. The microphone is deliberately
+   * not part of it - it is opened and closed by hand on the call exactly as it
+   * is in the chat, and `handsFreeMode` alone still decides whether it reopens
+   * by itself. A ref rather than a settings write, because a call must not
+   * quietly rewrite a preference the learner would find changed afterwards.
+   */
+  const isCallMode = useRef(false);
+
+  /**
+   * Which "generation" of speech we are on.
+   *
+   * `TextToSpeech.stop()` fires the utterance's own completion callback - and
+   * that callback is exactly where the hands-free loop reopens the microphone.
+   * So silencing the partner to hand the screen over was immediately reopening
+   * the mic behind the new screen. Every utterance captures the epoch it was
+   * started in, and a callback whose epoch has moved on is ignored: the speech
+   * was cancelled, so whatever was meant to happen after it is cancelled too.
+   */
+  const voiceEpoch = useRef(0);
+
+  /** Whether the mic should reopen once the partner has finished talking. */
+  const shouldAutoListen = useCallback(
+    (): boolean => settingsRef.current.handsFreeMode && !stateRef.current.isPaused,
+    [],
+  );
 
   // --- lifecycle -----------------------------------------------------------
 
@@ -207,6 +276,9 @@ export function useConversationEngine({
   const speakNow = useCallback(
     (text: string, messageId: string | undefined, onComplete?: () => void) => {
       const current = settingsRef.current;
+      const epoch = voiceEpoch.current;
+      /** False once this utterance has been cancelled by something else. */
+      const isCurrent = (): boolean => isMounted.current && voiceEpoch.current === epoch;
 
       void TextToSpeech.speak({
         text,
@@ -219,14 +291,14 @@ export function useConversationEngine({
         onDone: () => {
           if (!isMounted.current) return;
           dispatch({ type: 'speaking_finished' });
-          onComplete?.();
+          if (isCurrent()) onComplete?.();
         },
         onError: () => {
           if (!isMounted.current) return;
           // TTS failure is non-fatal: the text is already in the transcript.
           dispatch({ type: 'speaking_finished' });
           dispatch({ type: 'notice', message: 'Could not play that out loud.' });
-          onComplete?.();
+          if (isCurrent()) onComplete?.();
         },
       });
     },
@@ -236,7 +308,7 @@ export function useConversationEngine({
   /** Speaks only when the learner has asked for replies to be read aloud. */
   const speak = useCallback(
     (text: string, messageId: string | undefined, onComplete?: () => void) => {
-      if (!settingsRef.current.autoSpeak) {
+      if (!isCallMode.current && !settingsRef.current.autoSpeak) {
         onComplete?.();
         return;
       }
@@ -413,13 +485,13 @@ export function useConversationEngine({
 
         speak(result.value, assistantMessage.id, () => {
           // Hands-free: reopen the mic once the AI has finished its turn.
-          if (settingsRef.current.handsFreeMode && !stateRef.current.isPaused) {
+          if (shouldAutoListen()) {
             startListeningRef.current();
           }
         });
       });
     },
-    [runAnalysis, speak],
+    [runAnalysis, shouldAutoListen, speak],
   );
 
   useEffect(() => {
@@ -445,12 +517,12 @@ export function useConversationEngine({
     void beginConversationAudio().then(() => {
       if (!isMounted.current) return;
       speak(opening.text, opening.id, () => {
-        if (settingsRef.current.handsFreeMode && !stateRef.current.isPaused) {
+        if (shouldAutoListen()) {
           startListeningRef.current();
         }
       });
     });
-  }, [isResumed, speak]);
+  }, [isResumed, shouldAutoListen, speak]);
 
   // --- public API ----------------------------------------------------------
 
@@ -471,7 +543,22 @@ export function useConversationEngine({
   );
 
   const interrupt = useCallback(() => {
+    voiceEpoch.current += 1;
     void TextToSpeech.stop();
+    dispatch({ type: 'speaking_finished' });
+  }, []);
+
+  const releaseVoice = useCallback(() => {
+    // Ahead of the stop, so the cancelled utterance's completion callback -
+    // which is where hands-free reopens the mic - is ignored when it lands.
+    voiceEpoch.current += 1;
+    // `abort`, not `stop`: stopping finalises the recogniser and commits a turn
+    // the learner was in the middle of saying to a screen they have just left.
+    if (SpeechRecognition.isListening()) void SpeechRecognition.abort();
+    void TextToSpeech.stop();
+    // Dispatched rather than left to the recogniser's own callbacks, which are
+    // not guaranteed to fire on an abort on every platform.
+    dispatch({ type: 'listening_ended' });
     dispatch({ type: 'speaking_finished' });
   }, []);
 
@@ -483,6 +570,10 @@ export function useConversationEngine({
 
   const resume = useCallback(() => {
     dispatch({ type: 'resumed' });
+  }, []);
+
+  const setCallMode = useCallback((active: boolean) => {
+    isCallMode.current = active;
   }, []);
 
   const end = useCallback(async (): Promise<Conversation> => {
@@ -518,58 +609,85 @@ export function useConversationEngine({
   }, []);
 
   /**
-   * "I would rather not answer this one."
+   * Prompts the partner with something the learner did not actually compose.
    *
-   * Sent as speech, because that is what it is - a learner declining a question
-   * is a normal conversational move, and the partner should handle it in
-   * character rather than being reset. Nothing is appended to the transcript on
-   * the learner's side and nothing is analysed: they did not compose any
-   * English here, so counting it as a turn or grading it would be a lie.
+   * Nothing is appended to the transcript on the learner's side and nothing is
+   * analysed: they wrote no English here, so counting it as a turn or grading
+   * it would be a lie. The partner's answer is a real thing they said, and is
+   * kept like any other.
    */
-  const skipQuestion = useCallback(() => {
-    const current = stateRef.current;
-    if (isBusy(current) || current.phase === 'ended' || current.isPaused) return;
+  const promptPartner = useCallback(
+    (text: string) => {
+      const current = stateRef.current;
+      if (current.phase === 'ended') return;
 
-    if (SpeechRecognition.isListening()) void SpeechRecognition.abort();
-    void TextToSpeech.stop();
-    dispatch({ type: 'question_skipped' });
-
-    const elapsedMinutes = current.elapsedMs / 60_000;
-
-    void requestReply({
-      conversation: current.conversation,
-      settings: settingsRef.current,
-      progress: progressRef.current,
-      userText: SKIP_REQUEST,
-      elapsedMinutes,
-      shouldTransitionTopic: false,
-      signal: abortRef.current.signal,
-    }).then((result) => {
-      if (!isMounted.current) return;
-
-      if (!result.ok) {
-        if (result.error.code === 'cancelled') return;
-        dispatch({ type: 'failed', failure: result.error });
+      // Busy or on hold is a "not yet", not a "no". Dropping it here is what
+      // made a call connect to silence when the chat happened to have a reply
+      // in flight: the greeting vanished and nothing said so.
+      if (isBusy(current) || current.isPaused) {
+        log.info('Partner prompt held until the engine is free', { phase: current.phase });
+        pendingPrompt.current = text;
         return;
       }
+      pendingPrompt.current = undefined;
+      log.info('Prompting the partner', { words: countWords(text) });
 
-      const assistantMessage = buildAssistantMessage(result.value);
-      dispatch({
-        type: 'assistant_replied',
-        message: assistantMessage,
+      if (SpeechRecognition.isListening()) void SpeechRecognition.abort();
+      void TextToSpeech.stop();
+      dispatch({ type: 'question_skipped' });
+
+      const elapsedMinutes = current.elapsedMs / 60_000;
+
+      void requestReply({
+        conversation: current.conversation,
+        settings: settingsRef.current,
+        progress: progressRef.current,
+        userText: text,
         elapsedMinutes,
-        transitioned: false,
-      });
+        shouldTransitionTopic: false,
+        signal: abortRef.current.signal,
+      }).then((result) => {
+        if (!isMounted.current) return;
 
-      void persistDraft(stateRef.current.conversation);
-
-      speak(result.value, assistantMessage.id, () => {
-        if (settingsRef.current.handsFreeMode && !stateRef.current.isPaused) {
-          startListeningRef.current();
+        if (!result.ok) {
+          if (result.error.code === 'cancelled') return;
+          log.warn('Partner prompt failed', { code: result.error.code });
+          dispatch({ type: 'failed', failure: result.error });
+          return;
         }
+
+        const assistantMessage = buildAssistantMessage(result.value);
+        dispatch({
+          type: 'assistant_replied',
+          message: assistantMessage,
+          elapsedMinutes,
+          transitioned: false,
+        });
+
+        void persistDraft(stateRef.current.conversation);
+
+        speak(result.value, assistantMessage.id, () => {
+          if (shouldAutoListen()) {
+            startListeningRef.current();
+          }
+        });
       });
-    });
-  }, [speak]);
+    },
+    [shouldAutoListen, speak],
+  );
+
+  // Flushes a prompt that had to wait. Runs on every commit rather than on a
+  // timer, so it goes the instant the engine frees up.
+  useEffect(() => {
+    const text = pendingPrompt.current;
+    if (text === undefined) return;
+    if (isBusy(state) || state.isPaused || state.phase === 'ended') return;
+    promptPartner(text);
+  }, [promptPartner, state]);
+
+  const skipQuestion = useCallback(() => promptPartner(SKIP_REQUEST), [promptPartner]);
+
+  const openCall = useCallback(() => promptPartner(CALL_GREETING), [promptPartner]);
 
   /**
    * Clears the transcript and begins the topic again.
@@ -596,11 +714,11 @@ export function useConversationEngine({
     const opening = fresh.messages[0];
     if (!opening) return;
     speak(opening.text, opening.id, () => {
-      if (settingsRef.current.handsFreeMode && !stateRef.current.isPaused) {
+      if (shouldAutoListen()) {
         startListeningRef.current();
       }
     });
-  }, [speak]);
+  }, [shouldAutoListen, speak]);
 
   const replay = useCallback(
     (message: ConversationMessage) => {
@@ -619,10 +737,13 @@ export function useConversationEngine({
       toggleListening,
       sendText,
       interrupt,
+      releaseVoice,
       skipQuestion,
+      openCall,
       restart,
       pause,
       resume,
+      setCallMode,
       end,
       openFeedback,
       dismissError,
@@ -633,10 +754,13 @@ export function useConversationEngine({
       toggleListening,
       sendText,
       interrupt,
+      releaseVoice,
       skipQuestion,
+      openCall,
       restart,
       pause,
       resume,
+      setCallMode,
       end,
       openFeedback,
       dismissError,

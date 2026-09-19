@@ -17,6 +17,7 @@ import {
   configureNotificationHandler,
   syncDailyReminders,
 } from '@/services/notifications/NotificationService';
+import { useNotificationRouting } from '@/services/notifications/useNotificationRouting';
 import { SettingsProvider, useSettings } from '@/state/SettingsContext';
 import { ThemeProvider, useTheme } from '@/theme';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -95,6 +96,8 @@ function AppContent(): React.JSX.Element {
     const id = setTimeout(() => setMinimumElapsed(true), SPLASH_MINIMUM_MS);
     return () => clearTimeout(id);
   }, [fontsSettled]);
+
+  useNotificationRouting();
 
   // Rebuilt on every launch rather than scheduled once: the queue is a finite
   // run of dated alarms, so it has to be topped up, and this is also how the

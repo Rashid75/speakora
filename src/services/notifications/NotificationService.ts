@@ -22,7 +22,7 @@ export type ReminderMode = 'test' | 'daily';
 
 /**
  * TESTING: `test` fires one reminder a minute from now instead of tomorrow
- * morning. Change `mode` to 'daily' to ship - nothing else changes, because
+ * evening. Change `mode` to 'daily' to ship - nothing else changes, because
  * both paths build the same notification from the same copy.
  *
  * Held on an object rather than as a bare `const` on purpose: TypeScript
@@ -31,10 +31,16 @@ export type ReminderMode = 'test' | 'daily';
  * moment you flip it. A property access is not narrowed, so the switch stays a
  * one-word edit that actually compiles.
  */
-export const REMINDERS: { readonly mode: ReminderMode } = { mode: 'test' };
+export const REMINDERS: { readonly mode: ReminderMode } = { mode: 'daily' };
 
-/** When the daily reminder fires, in device-local time. */
-export const REMINDER_HOUR = 8;
+/**
+ * When the daily reminder fires, in device-local time.
+ *
+ * Evening rather than morning: the app asks for fifteen minutes of talking out
+ * loud, which is a thing people have time and privacy for after work far more
+ * often than before it.
+ */
+export const REMINDER_HOUR = 19;
 export const REMINDER_MINUTE = 0;
 
 /** Seconds ahead the test reminder fires. */
@@ -45,12 +51,12 @@ const TEST_DELAY_SECONDS = 60;
  *
  * A repeating DAILY trigger would only ever carry one fixed body, so the topic
  * could never change. Queueing a run of one-shot alarms - each with its own
- * topic - is how a backendless app gets a different suggestion each morning.
+ * topic - is how a backendless app gets a different suggestion each evening.
  * The run is rebuilt every time the app opens, so it never runs dry.
  */
 const DAYS_AHEAD = 14;
 
-/** Rotated so two consecutive mornings never open with the same sentence. */
+/** Rotated so two consecutive evenings never open with the same sentence. */
 const MOTIVATIONS: readonly string[] = [
   'Fifteen minutes a day is what turns practice into fluency.',
   'Fifteen focused minutes beats an hour you keep putting off.',
@@ -118,8 +124,8 @@ const ensureChannel = async (): Promise<void> => {
   });
 };
 
-/** The next `DAYS_AHEAD` mornings, starting with the next one still to come. */
-const upcomingMornings = (from: Date): readonly Date[] => {
+/** The next `DAYS_AHEAD` evenings, starting with the next one still to come. */
+const upcomingEvenings = (from: Date): readonly Date[] => {
   const first = new Date(from);
   first.setHours(REMINDER_HOUR, REMINDER_MINUTE, 0, 0);
   // Today's slot has already passed, so the run starts tomorrow.
@@ -170,9 +176,9 @@ export const syncDailyReminders = async (enabled: boolean): Promise<boolean> => 
       return true;
     }
 
-    const mornings = upcomingMornings(new Date());
+    const evenings = upcomingEvenings(new Date());
     await Promise.all(
-      mornings.map(async (date, index) => {
+      evenings.map(async (date, index) => {
         const reminder = buildReminder(index);
         await Notifications.scheduleNotificationAsync({
           content: {
@@ -188,7 +194,7 @@ export const syncDailyReminders = async (enabled: boolean): Promise<boolean> => 
         });
       }),
     );
-    log.info('Daily reminders scheduled', { days: mornings.length });
+    log.info('Daily reminders scheduled', { days: evenings.length });
     return true;
   } catch (error) {
     // A reminder that fails to schedule must never take the app down with it.

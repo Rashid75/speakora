@@ -50,7 +50,7 @@ the Statistics screen explains _why_ you are at that level.
 English, Travel & Real Life, and Exams & Interviews — plus custom topics: write
 any scenario in plain English and Gemini turns it into a full role-play.
 
-**Three partners** — Aya (warm, patient), Noor (polished, direct) and Kai
+**Three partners** — Aya (warm, patient), Alex (polished, direct) and Kai
 (fast, casual) — six accents, six speeds, six difficulty levels, seven themes
 with light and dark variants.
 

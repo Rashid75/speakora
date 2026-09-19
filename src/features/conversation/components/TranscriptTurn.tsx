@@ -78,7 +78,14 @@ export const TranscriptTurn = memo(function TranscriptTurn({
               {partner.name}
             </AppText>
           </View>
-          <AppText variant="body" color="aiBubbleText">
+          {/* Selectable, like any other text a person might want to keep.
+              A learner copying a phrase their partner used - into notes, a
+              dictionary, a message to someone - is the app working, and a
+              transcript you cannot take a word out of is just a picture of
+              one. Only the settled turns: the live one underneath is rewritten
+              on every syllable, which would drop a selection as fast as it
+              was made. */}
+          <AppText variant="body" color="aiBubbleText" selectable>
             {message.text}
           </AppText>
         </View>
@@ -157,7 +164,7 @@ export const TranscriptTurn = memo(function TranscriptTurn({
           },
         ]}
       >
-        <AppText variant="body" color="userBubbleText">
+        <AppText variant="body" color="userBubbleText" selectable>
           {message.text}
         </AppText>
       </View>

@@ -163,7 +163,7 @@ export function useCustomTopicBuilder(): CustomTopicBuilder {
         scenario: draft.scenario,
         talkingPoints: draft.talkingPoints,
         usefulPhrases: draft.usefulPhrases,
-        openingLine: draft.openingLine,
+        openingLines: draft.openingLines,
         source: 'custom',
         createdAt: nowIso(),
         originalPrompt: rawPrompt.trim(),

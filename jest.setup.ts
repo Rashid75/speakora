@@ -56,6 +56,17 @@ jest.mock('expo-speech-recognition', () => ({
 
 jest.mock('expo-audio', () => ({
   setAudioModeAsync: jest.fn(async () => undefined),
+  // The ringing tone on the video-call screen. A whole player object rather
+  // than `undefined`, so a test that mounts the call gets a working double
+  // instead of a crash inside an effect.
+  createAudioPlayer: jest.fn(() => ({
+    play: jest.fn(),
+    pause: jest.fn(),
+    seekTo: jest.fn(),
+    release: jest.fn(),
+    loop: false,
+    volume: 1,
+  })),
 }));
 
 jest.mock('expo-haptics', () => ({
@@ -84,6 +95,8 @@ jest.mock('expo-notifications', () => ({
   requestPermissionsAsync: jest.fn(async () => ({ granted: true, canAskAgain: true })),
   scheduleNotificationAsync: jest.fn(async () => 'notification-id'),
   cancelAllScheduledNotificationsAsync: jest.fn(async () => undefined),
+  getLastNotificationResponseAsync: jest.fn(async () => null),
+  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
   AndroidImportance: { DEFAULT: 3, HIGH: 4 },
   SchedulableTriggerInputTypes: { DATE: 'date', TIME_INTERVAL: 'timeInterval', DAILY: 'daily' },
 }));
