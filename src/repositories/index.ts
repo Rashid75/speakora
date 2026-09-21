@@ -4,6 +4,8 @@ export {
   toSummary,
 } from './ConversationRepository';
 export type { ConversationRepository } from './ConversationRepository';
+export { dictionaryRepository } from './DictionaryRepository';
+export type { DictionaryRepository } from './DictionaryRepository';
 export { progressRepository, normaliseProgress } from './ProgressRepository';
 export type { ProgressRepository } from './ProgressRepository';
 export { settingsRepository, normaliseSettings } from './SettingsRepository';

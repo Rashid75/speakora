@@ -304,4 +304,12 @@ const styles = StyleSheet.create({
   altText: { flex: 1 },
   strike: { textDecorationLine: 'line-through' },
   suggestion: { padding: 12, gap: 4 },
+  form: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    gap: 2,
+  },
 });

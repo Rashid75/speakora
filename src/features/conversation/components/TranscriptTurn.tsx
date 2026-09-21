@@ -2,6 +2,7 @@ import React, { memo, useEffect, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
+import { TappableWords } from '@/features/dictionary/components/TappableWords';
 import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
@@ -29,6 +30,11 @@ export interface TranscriptTurnProps {
   readonly onSkipQuestion: () => void;
   /** True while this exact message is being read aloud. */
   readonly isSpeaking: boolean;
+  /**
+   * A word in this turn was tapped. Handed the word and the whole line, since
+   * the sentence decides which sense of the word is the one being asked about.
+   */
+  readonly onWordPress?: (word: string, sentence: string) => void;
 }
 
 /**
@@ -55,6 +61,7 @@ export const TranscriptTurn = memo(function TranscriptTurn({
   showSkip,
   onSkipQuestion,
   isSpeaking,
+  onWordPress,
 }: TranscriptTurnProps): React.JSX.Element {
   const theme = useTheme();
   const reduceMotion = useReducedMotion();
@@ -78,16 +85,16 @@ export const TranscriptTurn = memo(function TranscriptTurn({
               {partner.name}
             </AppText>
           </View>
-          {/* Selectable, like any other text a person might want to keep.
-              A learner copying a phrase their partner used - into notes, a
-              dictionary, a message to someone - is the app working, and a
-              transcript you cannot take a word out of is just a picture of
-              one. Only the settled turns: the live one underneath is rewritten
-              on every syllable, which would drop a selection as fast as it
-              was made. */}
-          <AppText variant="body" color="aiBubbleText" selectable>
-            {message.text}
-          </AppText>
+          {/* Selectable, like any other text a person might want to keep,
+              and tappable word by word so an unfamiliar one can be looked up
+              where it was met. Only the settled turns: the live one underneath
+              is rewritten on every syllable, which would drop a selection as
+              fast as it was made. */}
+          <TappableWords
+            text={message.text}
+            color="aiBubbleText"
+            onWordPress={(word) => onWordPress?.(word, message.text)}
+          />
         </View>
 
         <View style={styles.actions}>
@@ -164,9 +171,11 @@ export const TranscriptTurn = memo(function TranscriptTurn({
           },
         ]}
       >
-        <AppText variant="body" color="userBubbleText" selectable>
-          {message.text}
-        </AppText>
+        <TappableWords
+          text={message.text}
+          color="userBubbleText"
+          onWordPress={(word) => onWordPress?.(word, message.text)}
+        />
       </View>
 
       {message.analysisState === 'pending' ? (

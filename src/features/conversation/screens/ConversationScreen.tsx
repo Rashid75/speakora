@@ -31,6 +31,7 @@ import type { AppFailure, Conversation, ConversationMessage } from '@/types';
 import { fadeOut } from '@/utils/color';
 import { copyFor } from '@/utils/errors';
 import { formatTimer } from '@/utils/time';
+import { WordSheet } from '@/features/dictionary/components/WordSheet';
 import { ChatSettingsSheet } from '../components/ChatSettingsSheet';
 import { InterimTurn } from '../components/InterimTurn';
 import { MicControls } from '../components/MicControls';
@@ -174,6 +175,10 @@ function ConversationSession({
 
   const call = useAudioCall();
 
+  // The word the learner tapped, with the line it was in - the sheet needs
+  // both, because the sentence decides which sense gets explained.
+  const [lookup, setLookup] = useState<{ word: string; sentence: string } | undefined>(undefined);
+
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackTarget | undefined>(undefined);
   const listRef = useRef<FlatList<ConversationMessage>>(null);
@@ -288,6 +293,10 @@ function ConversationSession({
     return () => subscription.remove();
   }, [call, confirmEnd, state.conversation.stats.userTurns, state.phase]);
 
+  const lookUp = useCallback((word: string, sentence: string) => {
+    setLookup({ word, sentence });
+  }, []);
+
   const showGrammar = useCallback((message: ConversationMessage) => {
     setFeedback({ messageId: message.id, mode: 'grammar' });
   }, []);
@@ -328,11 +337,13 @@ function ConversationSession({
         showSkip={item.id === skippableId}
         onSkipQuestion={engine.skipQuestion}
         isSpeaking={item.id === state.speakingMessageId}
+        onWordPress={lookUp}
       />
     ),
     [
       engine.replay,
       engine.skipQuestion,
+      lookUp,
       personality,
       settings.profile,
       showGrammar,
@@ -519,6 +530,13 @@ function ConversationSession({
           onResume={engine.resume}
         />
       </View>
+
+      <WordSheet
+        word={lookup?.word}
+        {...(lookup ? { context: lookup.sentence } : {})}
+        topicTitle={state.conversation.topicTitle}
+        onClose={() => setLookup(undefined)}
+      />
 
       <TurnFeedbackSheet
         visible={feedback !== undefined}

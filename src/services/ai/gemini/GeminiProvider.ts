@@ -6,6 +6,7 @@ import {
   buildFeedbackPrompt,
   buildLevelAssessmentPrompt,
   buildTopicOptimizationPrompt,
+  buildWordLookupPrompt,
 } from '@/prompts';
 import {
   failure,
@@ -22,6 +23,8 @@ import {
   type OptimizedTopicDraft,
   type Result,
   type TurnAnalysis,
+  type WordEntry,
+  type WordLookupRequest,
 } from '@/types';
 import { sleep } from '@/utils/time';
 import { createLogger } from '@/services/logging/logger';
@@ -31,6 +34,7 @@ import {
   parseLevelEstimate,
   parseOptimizedTopic,
   parseTurnAnalysis,
+  parseWordEntry,
 } from '../parsers';
 import { generateContent, type GeminiContent } from './geminiClient';
 
@@ -141,6 +145,34 @@ export class GeminiProvider implements AIProvider {
     const parsed = parseOptimizedTopic(result.value, request.settings.difficulty);
     if (!parsed) {
       return { ok: false, error: failure('ai_invalid_response', 'Topic JSON unusable') };
+    }
+    return { ok: true, value: parsed };
+  }
+
+  async lookUpWord(
+    request: WordLookupRequest,
+    signal?: AbortSignal,
+  ): Promise<Result<WordEntry, AppFailure>> {
+    const result = await this.withRetry(
+      () =>
+        generateContent({
+          operation: 'word',
+          contents: [{ role: 'user', parts: [{ text: buildWordLookupPrompt(request) }] }],
+          // A definition should not change between two people looking up the
+          // same word, so this runs colder than the conversation does.
+          temperature: 0.2,
+          maxOutputTokens: AI_LIMITS.maxOutputTokensWord,
+          json: true,
+          signal,
+        }),
+      signal,
+    );
+
+    if (!result.ok) return result;
+
+    const parsed = parseWordEntry(result.value, request.word);
+    if (!parsed) {
+      return { ok: false, error: failure('ai_invalid_response', 'Word JSON unusable') };
     }
     return { ok: true, value: parsed };
   }

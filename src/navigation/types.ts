@@ -30,6 +30,7 @@ export type RootStackParamList = {
    */
   Conversation: { topic: Topic } | { resumeId: string };
   ConversationDetail: { conversationId: string; fromConversation: boolean };
+  Dictionary: undefined;
   ProfileSettings: undefined;
   PersonalitySettings: undefined;
   AccentSettings: undefined;

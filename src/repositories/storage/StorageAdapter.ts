@@ -31,6 +31,7 @@ export const STORAGE_KEYS = {
   conversations: 'speakora:conversations:v1',
   customTopics: 'speakora:custom-topics:v1',
   levelEvidence: 'speakora:level-evidence:v1',
+  dictionary: 'speakora:dictionary:v1',
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];

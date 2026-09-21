@@ -11,6 +11,7 @@ import { getCategory } from '@/data/topics';
 import { ConversationScreen } from '@/features/conversation/screens/ConversationScreen';
 import { ConversationSetupScreen } from '@/features/conversation/screens/ConversationSetupScreen';
 import { CustomTopicScreen } from '@/features/custom-topics/screens/CustomTopicScreen';
+import { DictionaryScreen } from '@/features/dictionary/screens/DictionaryScreen';
 import { ConversationDetailScreen } from '@/features/history/screens/ConversationDetailScreen';
 import { CategoryTopicsScreen } from '@/features/home/screens/CategoryTopicsScreen';
 import { OnboardingScreen } from '@/features/onboarding/screens/OnboardingScreen';
@@ -69,6 +70,12 @@ export function RootNavigator(): React.JSX.Element {
         ) : null}
 
         <Stack.Screen name="Tabs" component={TabNavigator} options={{ headerShown: false }} />
+
+        <Stack.Screen
+          name="Dictionary"
+          component={DictionaryScreen}
+          options={{ title: 'My words' }}
+        />
 
         <Stack.Screen
           name="CategoryTopics"

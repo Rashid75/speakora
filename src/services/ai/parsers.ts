@@ -11,9 +11,11 @@ import type {
   TurnAnalysis,
   VocabularySuggestion,
   CefrLevel,
+  WordEntry,
 } from '@/types';
 import { PERSONALITY_LIST } from '@/data/personalities';
 import { escapeRegExp, stripMarkdown } from '@/utils/text';
+import { nowIso } from '@/utils/time';
 import type { JsonObject } from './json';
 import { parseJsonObject } from './json';
 import {
@@ -196,6 +198,53 @@ const parsePronunciation = (
       raw.note,
       'Based on how clearly speech recognition understood you, not a phonetic analysis.',
     ),
+  };
+};
+
+/**
+ * A word entry, or nothing.
+ *
+ * `synonyms` is allowed to come back empty and is left empty - the prompt
+ * tells the model not to pad it, and quietly topping it up here would undo
+ * that. `examples` is the other way round: an entry with no example sentence
+ * is not worth showing, so it fails rather than rendering a blank section.
+ */
+export const parseWordEntry = (raw: string, word: string): WordEntry | undefined => {
+  const json = parseJsonObject(raw);
+  if (!json) return undefined;
+
+  const meaning = asString(json.meaning);
+  const examples = asStringArray(json.examples, 4);
+  if (!meaning || examples.length === 0) return undefined;
+
+  const partOfSpeech = asString(json.partOfSpeech);
+  const formUsed = asString(json.formUsed);
+
+  // Verb forms only survive on a verb, whatever the model returned. Asked
+  // loosely, models hand back "book, booked, booked" on an entry about the
+  // noun - a pattern that is not there, presented as if it were.
+  const formsRaw = asObject(json.verbForms);
+  const base = asString(formsRaw.base);
+  // Word-boundaried on purpose: a bare /verb/ also matches "adverb", which
+  // would hand three principal parts to a word that has none.
+  const verbForms =
+    /\bverb\b/i.test(partOfSpeech) && base
+      ? {
+          base,
+          past: asString(formsRaw.past),
+          pastParticiple: asString(formsRaw.pastParticiple),
+        }
+      : undefined;
+
+  return {
+    word: asString(json.word, word).toLowerCase() || word,
+    ...(partOfSpeech ? { partOfSpeech } : {}),
+    ...(formUsed ? { formUsed } : {}),
+    ...(verbForms ? { verbForms } : {}),
+    meaning,
+    synonyms: asStringArray(json.synonyms, 4),
+    examples,
+    lookedUpAt: nowIso(),
   };
 };
 

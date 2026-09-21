@@ -2,6 +2,7 @@ export * from './ai';
 export * from './assessment';
 export * from './common';
 export * from './conversation';
+export * from './dictionary';
 export * from './feedback';
 export * from './settings';
 export * from './speech';

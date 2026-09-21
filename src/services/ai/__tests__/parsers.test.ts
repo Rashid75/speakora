@@ -3,10 +3,111 @@ import {
   parseConversationReply,
   parseLevelEstimate,
   parseOptimizedTopic,
+  parseWordEntry,
   parseTurnAnalysis,
   sanitiseSpokenText,
 } from '@/services/ai/parsers';
 import { parseJsonObject } from '@/services/ai/json';
+
+describe('parseWordEntry', () => {
+  const base = {
+    word: 'procrastinate',
+    partOfSpeech: 'verb',
+    meaning: 'To keep putting something off until later.',
+    examples: ['I procrastinate every Sunday evening.', 'Stop procrastinating and call them.'],
+  };
+
+  it('keeps what the model wrote', () => {
+    const entry = parseWordEntry(JSON.stringify({ ...base, synonyms: ['delay', 'put off'] }), 'x');
+    expect(entry).toMatchObject({
+      word: 'procrastinate',
+      partOfSpeech: 'verb',
+      synonyms: ['delay', 'put off'],
+    });
+  });
+
+  it('leaves an empty synonym list empty rather than padding it', () => {
+    // The prompt tells the model not to invent loose synonyms; topping the
+    // list up here would quietly undo that, and a learner will use whatever
+    // is on screen.
+    const entry = parseWordEntry(JSON.stringify({ ...base, synonyms: [] }), 'x');
+    expect(entry?.synonyms).toEqual([]);
+  });
+
+  it('rejects an entry with no meaning or no examples', () => {
+    expect(parseWordEntry(JSON.stringify({ ...base, meaning: '' }), 'x')).toBe(undefined);
+    expect(parseWordEntry(JSON.stringify({ ...base, examples: [] }), 'x')).toBe(undefined);
+  });
+
+  it('falls back to the word that was asked about', () => {
+    const entry = parseWordEntry(JSON.stringify({ ...base, word: '' }), 'procrastinate');
+    expect(entry?.word).toBe('procrastinate');
+  });
+
+  it('omits the part of speech rather than showing an empty one', () => {
+    const entry = parseWordEntry(JSON.stringify({ ...base, partOfSpeech: '' }), 'x');
+    expect(entry?.partOfSpeech).toBe(undefined);
+  });
+
+  describe('verb forms', () => {
+    const forms = { base: 'go', past: 'went', pastParticiple: 'gone' };
+
+    it('keeps all three principal parts for a verb', () => {
+      const entry = parseWordEntry(JSON.stringify({ ...base, verbForms: forms }), 'x');
+      expect(entry?.verbForms).toEqual(forms);
+    });
+
+    it('keeps them for a phrasal verb too', () => {
+      const entry = parseWordEntry(
+        JSON.stringify({ ...base, partOfSpeech: 'phrasal verb', verbForms: forms }),
+        'x',
+      );
+      expect(entry?.verbForms).toEqual(forms);
+    });
+
+    // "book, booked, booked" on an entry about the noun teaches a pattern
+    // that is not there, so the parser drops it however confidently it came.
+    it('throws them away when the word is not a verb', () => {
+      for (const partOfSpeech of ['noun', 'adjective', 'adverb', 'idiom']) {
+        const entry = parseWordEntry(
+          JSON.stringify({ ...base, partOfSpeech, verbForms: forms }),
+          'x',
+        );
+        expect(entry?.verbForms).toBe(undefined);
+      }
+    });
+
+    it('drops the block when the base form is missing', () => {
+      const entry = parseWordEntry(
+        JSON.stringify({ ...base, verbForms: { base: '', past: 'went', pastParticiple: 'gone' } }),
+        'x',
+      );
+      expect(entry?.verbForms).toBe(undefined);
+    });
+
+    it('survives a model that omits verb forms entirely', () => {
+      const entry = parseWordEntry(JSON.stringify(base), 'x');
+      expect(entry?.verbForms).toBe(undefined);
+      expect(entry?.meaning).toBe(base.meaning);
+    });
+  });
+
+  it('keeps the form that was tapped, and omits it when blank', () => {
+    const tapped = parseWordEntry(JSON.stringify({ ...base, formUsed: 'past simple' }), 'x');
+    expect(tapped?.formUsed).toBe('past simple');
+    expect(parseWordEntry(JSON.stringify({ ...base, formUsed: '' }), 'x')?.formUsed).toBe(
+      undefined,
+    );
+  });
+
+  it('keeps up to four example sentences', () => {
+    const entry = parseWordEntry(
+      JSON.stringify({ ...base, examples: ['a.', 'b.', 'c.', 'd.', 'e.'] }),
+      'x',
+    );
+    expect(entry?.examples).toEqual(['a.', 'b.', 'c.', 'd.']);
+  });
+});
 
 describe('parseOptimizedTopic', () => {
   const base = {

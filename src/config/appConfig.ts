@@ -50,6 +50,8 @@ export const AI_LIMITS = {
   maxOutputTokensAnalysis: 900,
   maxOutputTokensAssessment: 900,
   maxOutputTokensTopic: 900,
+  // One word, one meaning, a few synonyms and three short sentences.
+  maxOutputTokensWord: 500,
   retryAttempts: 2,
   retryBaseDelayMs: 700,
 } as const;

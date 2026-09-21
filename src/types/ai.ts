@@ -1,6 +1,7 @@
 import type { CefrLevel, ProgressState } from './assessment';
 import type { AppFailure, Result } from './common';
 import type { Conversation } from './conversation';
+import type { WordEntry } from './dictionary';
 import type { ConversationAssessment, TurnAnalysis } from './feedback';
 import type { AppSettings } from './settings';
 import type { OptimizedTopicDraft, Topic } from './topic';
@@ -45,6 +46,14 @@ export interface OptimizeTopicRequest {
   readonly settings: AppSettings;
 }
 
+export interface WordLookupRequest {
+  /** Already normalised by the caller - lower case, no surrounding marks. */
+  readonly word: string;
+  /** The sentence it was met in, which decides which sense is explained. */
+  readonly context?: string;
+  readonly settings: AppSettings;
+}
+
 export interface EvaluateConversationRequest {
   readonly conversation: Conversation;
 }
@@ -81,6 +90,10 @@ export interface AIProvider {
     request: OptimizeTopicRequest,
     signal?: AbortSignal,
   ): Promise<Result<OptimizedTopicDraft, AppFailure>>;
+  lookUpWord(
+    request: WordLookupRequest,
+    signal?: AbortSignal,
+  ): Promise<Result<WordEntry, AppFailure>>;
   evaluateConversation(
     request: EvaluateConversationRequest,
     signal?: AbortSignal,

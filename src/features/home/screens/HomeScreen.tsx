@@ -14,7 +14,12 @@ import { BROWSABLE_CATEGORIES } from '@/data/topics';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import type { RootStackParamList } from '@/navigation/types';
-import { conversationRepository, progressRepository, topicRepository } from '@/repositories';
+import {
+  conversationRepository,
+  dictionaryRepository,
+  progressRepository,
+  topicRepository,
+} from '@/repositories';
 import { useSettings } from '@/state/SettingsContext';
 import { useTheme } from '@/theme';
 import type { ConversationSummary, ProgressState, Topic, TopicCategoryId } from '@/types';
@@ -29,16 +34,18 @@ interface HomeData {
   readonly custom: readonly Topic[];
   readonly progress: ProgressState;
   readonly recent: readonly ConversationSummary[];
+  readonly savedWords: number;
 }
 
 const loadHome = async (): Promise<HomeData> => {
-  const [all, custom, progress, recent] = await Promise.all([
+  const [all, custom, progress, recent, words] = await Promise.all([
     topicRepository.listAll(),
     topicRepository.listCustom(),
     progressRepository.load(),
     conversationRepository.list(),
+    dictionaryRepository.list(),
   ]);
-  return { all, custom, progress, recent };
+  return { all, custom, progress, recent, savedWords: words.length };
 };
 
 /** Category icons from the handoff. */
@@ -104,6 +111,7 @@ export function HomeScreen(): React.JSX.Element {
   }
 
   const custom = home.data?.custom ?? [];
+  const savedWords = home.data?.savedWords ?? 0;
   const unfinished = home.data?.recent.find((item) => item.status === 'abandoned');
 
   return (
@@ -183,6 +191,42 @@ export function HomeScreen(): React.JSX.Element {
                 />
               </View>
             </View>
+          </View>
+        ) : null}
+
+        {/* Above the catalogue rather than inside it: these are the
+            learner's own words, collected from conversations they have already
+            had, which makes them a different kind of thing from a topic
+            somebody else wrote. Hidden until there is at least one, so a new
+            install is not handed an empty shelf to wonder about. */}
+        {savedWords > 0 ? (
+          <View style={styles.padded}>
+            <Pressable
+              onPress={() => navigation.navigate('Dictionary')}
+              accessibilityRole="button"
+              accessibilityLabel={`My words, ${savedWords} saved`}
+              accessibilityHint="Opens the words you have saved from your conversations"
+              style={({ pressed }) => [
+                styles.words,
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.border,
+                  borderRadius: theme.radius.lg,
+                  opacity: pressed ? theme.opacity.pressed : 1,
+                },
+              ]}
+            >
+              <AppText variant="title2" accessibilityElementsHidden>
+                📒
+              </AppText>
+              <View style={styles.wordsText}>
+                <AppText variant="bodyStrong">My words</AppText>
+                <AppText variant="callout" color="textSecondary">
+                  {savedWords} saved from your conversations
+                </AppText>
+              </View>
+              <Icon name="chevronRight" size={12} color={theme.colors.textTertiary} />
+            </Pressable>
           </View>
         ) : null}
 
@@ -379,6 +423,15 @@ export function HomeScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   content: { paddingBottom: 24, gap: 28 },
+  words: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  wordsText: { flex: 1, gap: 2 },
   padded: { paddingHorizontal: 20 },
   header: {
     flexDirection: 'row',

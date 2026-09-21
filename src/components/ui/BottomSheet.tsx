@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
 import { HIT_SLOP, useTheme } from '@/theme';
 import { AppText } from './AppText';
 
@@ -33,6 +34,7 @@ export function BottomSheet({
 }: BottomSheetProps): React.JSX.Element {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const keyboard = useKeyboardHeight();
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -50,7 +52,13 @@ export function BottomSheet({
             backgroundColor: theme.colors.background,
             borderTopLeftRadius: theme.radius.xl,
             borderTopRightRadius: theme.radius.xl,
-            paddingBottom: Math.max(insets.bottom, 16) + 8,
+            // Lifted clear of the keyboard by hand. The modal's own window
+            // ignores the activity's `adjustResize`, so without this a sheet
+            // with a text field in it is typed into blind.
+            marginBottom: keyboard,
+            // The home-indicator inset is meaningless once the keyboard owns
+            // that space, so it is dropped rather than added on top.
+            paddingBottom: keyboard > 0 ? 16 : Math.max(insets.bottom, 16) + 8,
           },
         ]}
       >
