@@ -197,38 +197,41 @@ export function HomeScreen(): React.JSX.Element {
         {/* Above the catalogue rather than inside it: these are the
             learner's own words, collected from conversations they have already
             had, which makes them a different kind of thing from a topic
-            somebody else wrote. Hidden until there is at least one, so a new
-            install is not handed an empty shelf to wonder about. */}
-        {savedWords > 0 ? (
-          <View style={styles.padded}>
-            <Pressable
-              onPress={() => navigation.navigate('Dictionary')}
-              accessibilityRole="button"
-              accessibilityLabel={`My words, ${savedWords} saved`}
-              accessibilityHint="Opens the words you have saved from your conversations"
-              style={({ pressed }) => [
-                styles.words,
-                {
-                  backgroundColor: theme.colors.surface,
-                  borderColor: theme.colors.border,
-                  borderRadius: theme.radius.lg,
-                  opacity: pressed ? theme.opacity.pressed : 1,
-                },
-              ]}
-            >
-              <AppText variant="title2" accessibilityElementsHidden>
-                📒
+            somebody else wrote. Shown from the first launch, empty or not - a
+            feature nobody can see is a feature nobody uses, and the row is
+            where the explanation of how to fill it lives. */}
+        <View style={styles.padded}>
+          <Pressable
+            onPress={() => navigation.navigate('Dictionary')}
+            accessibilityRole="button"
+            accessibilityLabel={
+              savedWords > 0 ? `My words, ${savedWords} saved` : 'My words, nothing saved yet'
+            }
+            accessibilityHint="Opens the words you have saved, and explains how to save more"
+            style={({ pressed }) => [
+              styles.words,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.border,
+                borderRadius: theme.radius.lg,
+                opacity: pressed ? theme.opacity.pressed : 1,
+              },
+            ]}
+          >
+            <AppText variant="title2" accessibilityElementsHidden>
+              📒
+            </AppText>
+            <View style={styles.wordsText}>
+              <AppText variant="bodyStrong">My words</AppText>
+              <AppText variant="callout" color="textSecondary">
+                {savedWords > 0
+                  ? `${savedWords} saved from your conversations`
+                  : 'Tap a word while you talk to keep it here'}
               </AppText>
-              <View style={styles.wordsText}>
-                <AppText variant="bodyStrong">My words</AppText>
-                <AppText variant="callout" color="textSecondary">
-                  {savedWords} saved from your conversations
-                </AppText>
-              </View>
-              <Icon name="chevronRight" size={12} color={theme.colors.textTertiary} />
-            </Pressable>
-          </View>
-        ) : null}
+            </View>
+            <Icon name="chevronRight" size={12} color={theme.colors.textTertiary} />
+          </Pressable>
+        </View>
 
         {BROWSABLE_CATEGORIES.map((category) => {
           const list = byCategory.get(category.id) ?? [];

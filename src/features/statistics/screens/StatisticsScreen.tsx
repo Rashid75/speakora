@@ -5,7 +5,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { WeekBars } from '@/components/charts/WeekBars';
 import { AppText } from '@/components/ui/AppText';
-import { Card } from '@/components/ui/Card';
 import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { Section } from '@/components/ui/Section';
@@ -205,31 +204,6 @@ export function StatisticsScreen(): React.JSX.Element {
           </View>
         </Section>
       ) : null}
-
-      {snapshot.newVocabulary.length > 0 ? (
-        <Section title="Words suggested to you">
-          <Card>
-            <View style={styles.words}>
-              {snapshot.newVocabulary.slice(0, 20).map((word) => (
-                <View
-                  key={word}
-                  style={[
-                    styles.wordChip,
-                    {
-                      backgroundColor: theme.colors.primarySoft,
-                      borderRadius: theme.radius.pill,
-                    },
-                  ]}
-                >
-                  <AppText variant="caption" color="primaryStrong">
-                    {word}
-                  </AppText>
-                </View>
-              ))}
-            </View>
-          </Card>
-        </Section>
-      ) : null}
     </Screen>
   );
 }
@@ -342,6 +316,4 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderWidth: 1,
   },
-  words: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  wordChip: { paddingHorizontal: 10, paddingVertical: 4 },
 });

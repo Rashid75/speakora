@@ -187,6 +187,29 @@ describe('aggregateStatistics', () => {
     );
     expect(snapshot.newVocabulary).toContain('compelling');
   });
+
+  it('skips a suggestion that is a phrase rather than a word', () => {
+    // The word list looks one word up at a time, so "agentic AI" would come
+    // back as a definition of neither half.
+    const snapshot = aggregateStatistics(
+      [
+        conversation({
+          messages: [
+            message({
+              analysis: analysis({
+                vocabulary: [
+                  { original: 'new', suggestion: 'agentic AI', reason: '' },
+                  { original: 'good', suggestion: 'compelling', reason: '' },
+                ],
+              }),
+            }),
+          ],
+        }),
+      ],
+      INITIAL_PROGRESS,
+    );
+    expect(snapshot.newVocabulary).toEqual(['compelling']);
+  });
 });
 
 describe('computeCommonMistakes', () => {

@@ -12,6 +12,7 @@ import {
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { ToastProvider } from '@/components/ui/Toast';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import {
   configureNotificationHandler,
@@ -49,6 +50,7 @@ const SPLASH_MINIMUM_MS = 1100;
  *   SafeAreaProvider       supplies insets to Screen and the navigators
  *   SettingsProvider       must precede ThemeProvider - the theme reads settings
  *   ThemeProvider          supplies tokens to every component
+ *   ToastProvider          draws over every screen, so it goes last
  */
 export default function App(): React.JSX.Element {
   return (
@@ -57,7 +59,9 @@ export default function App(): React.JSX.Element {
         <SafeAreaProvider>
           <SettingsProvider>
             <ThemeProvider>
-              <AppContent />
+              <ToastProvider>
+                <AppContent />
+              </ToastProvider>
             </ThemeProvider>
           </SettingsProvider>
         </SafeAreaProvider>

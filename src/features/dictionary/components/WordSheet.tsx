@@ -1,12 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
+import { Icon } from '@/components/ui/Icon';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Button } from '@/components/ui/Button';
 import { LoadingState } from '@/components/ui/StateViews';
+import { useToast } from '@/components/ui/Toast';
 import { dictionaryRepository } from '@/repositories';
 import { forgetWord, lookUpWord, normaliseWord, saveWord } from '@/services/dictionary';
+import { TextToSpeech } from '@/services/speech';
 import { useSettings } from '@/state/SettingsContext';
 import { useTheme, type Theme } from '@/theme';
 import type { AppFailure, WordEntry } from '@/types';
@@ -23,6 +26,14 @@ export interface WordSheetProps {
   /** Fired whenever the word list changed, so a list behind this can refresh. */
   readonly onChanged?: () => void;
 }
+
+/**
+ * Slower than the conversation runs, whatever pace the learner has set for it.
+ *
+ * A word on its own is being said so it can be copied, not followed - the
+ * gap between syllables is the whole point, and at 1.75x there is not one.
+ */
+const PRONUNCIATION_SPEED = 0.75;
 
 /** Everything the sheet knows about one word. */
 interface LookupState {
@@ -60,10 +71,12 @@ export function WordSheet({
   onChanged,
 }: WordSheetProps): React.JSX.Element {
   const theme = useTheme();
+  const toast = useToast();
   const { settings } = useSettings();
 
   const normalised = word ? normaliseWord(word) : '';
   const [stored, setStored] = useState<LookupState>(() => blank(''));
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   // Derived rather than cleared in an effect: state for a different word
   // simply does not match, so a new word starts clean without a frame of the
@@ -125,6 +138,34 @@ export function WordSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [context, normalised]);
 
+  // Only ever stops speech this sheet started. The conversation behind it
+  // shares one speaker, and closing a word should not cut the partner off
+  // mid-sentence.
+  const isSpeakingRef = useRef(false);
+  useEffect(() => {
+    isSpeakingRef.current = isSpeaking;
+  });
+
+  useEffect(
+    () => () => {
+      if (isSpeakingRef.current) void TextToSpeech.stop();
+    },
+    [],
+  );
+
+  const speakWord = (): void => {
+    if (!normalised) return;
+    void TextToSpeech.speak({
+      text: normalised,
+      accent: settings.accent,
+      personalityId: settings.personalityId,
+      speed: PRONUNCIATION_SPEED,
+      onStart: () => setIsSpeaking(true),
+      onDone: () => setIsSpeaking(false),
+      onError: () => setIsSpeaking(false),
+    });
+  };
+
   // A plain function, not a `useCallback`: `view` is derived on every render,
   // so there is nothing stable to memoise against and the only prop it feeds
   // is a button's `onPress`.
@@ -138,6 +179,16 @@ export function WordSheet({
       ...(previous.word === normalised ? previous : blank(normalised)),
       isSaved: next,
     }));
+
+    // Removing is the end of the learner's business with this word, so the
+    // sheet gets out of the way at once and the toast carries the result -
+    // otherwise the tap leaves them looking at a sheet offering to save back
+    // the word they just deleted. Saving keeps the sheet up, because the
+    // meaning underneath is the reason they opened it.
+    if (!next) {
+      onClose();
+      toast.show(`Removed \u201c${normalised}\u201d from your words`);
+    }
 
     void (async () => {
       if (next) {
@@ -177,6 +228,34 @@ export function WordSheet({
         />
       }
     >
+      {/* First in the sheet and outside the loading branch: hearing a word
+          said does not depend on anything coming back from the model, and it
+          is often the only thing the learner opened this for. */}
+      <Pressable
+        onPress={speakWord}
+        accessibilityRole="button"
+        accessibilityLabel={`Hear ${normalised} spoken`}
+        accessibilityHint="Says the word out loud, slowly"
+        accessibilityState={{ busy: isSpeaking }}
+        style={({ pressed }) => [
+          styles.hear,
+          {
+            backgroundColor: isSpeaking ? theme.colors.primary : theme.colors.primarySoft,
+            borderRadius: theme.radius.pill,
+            opacity: pressed ? theme.opacity.pressed : 1,
+          },
+        ]}
+      >
+        <Icon
+          name="speaker"
+          size={18}
+          color={isSpeaking ? theme.colors.onPrimary : theme.colors.primaryStrong}
+        />
+        <AppText variant="calloutStrong" color={isSpeaking ? 'onPrimary' : 'primaryStrong'}>
+          {isSpeaking ? 'Saying it…' : 'Hear it'}
+        </AppText>
+      </Pressable>
+
       {context ? (
         <Section title="Where you met it">
           <AppText variant="body" color="textSecondary" style={styles.quote}>
@@ -401,6 +480,15 @@ function Section({
 
 const styles = StyleSheet.create({
   section: { gap: 6 },
+  hear: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    minHeight: 44,
+  },
   quote: { fontStyle: 'italic' },
   forms: { flexDirection: 'row', gap: 8 },
   form: { flex: 1, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 8, gap: 2 },

@@ -11,6 +11,7 @@ import {
   type Difficulty,
 } from '@/types';
 import { dayKey, daysBetweenKeys } from '@/utils/time';
+import { isSingleWord } from '@/services/dictionary/word';
 
 /**
  * Derives every number on the Statistics screen from stored conversations.
@@ -213,7 +214,14 @@ const normalisePattern = (explanation: string): string =>
     .slice(0, 6)
     .join(' ');
 
-/** Words the coach actually suggested, most recent first. */
+/**
+ * Words the coach actually suggested, most recent first.
+ *
+ * Single words only. The analysis pass happily suggests a phrase - "agentic
+ * AI", "put off" - and a phrase is a fine thing to say but a poor thing to
+ * collect: the word list looks them up one at a time, so a two-word entry
+ * comes back as a definition of neither half.
+ */
 const computeVocabulary = (conversations: readonly Conversation[]): string[] => {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -223,7 +231,7 @@ const computeVocabulary = (conversations: readonly Conversation[]): string[] => 
       for (const suggestion of message.analysis?.vocabulary ?? []) {
         const word = suggestion.suggestion.trim();
         const key = word.toLowerCase();
-        if (!word || seen.has(key)) continue;
+        if (!word || seen.has(key) || !isSingleWord(word)) continue;
         seen.add(key);
         out.push(word);
         if (out.length >= 40) return out;
